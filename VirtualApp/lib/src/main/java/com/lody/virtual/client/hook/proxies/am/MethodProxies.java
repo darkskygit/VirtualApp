@@ -1,5 +1,6 @@
 package com.lody.virtual.client.hook.proxies.am;
 
+import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.ActivityManager;
 import android.app.Application;
@@ -1047,6 +1048,9 @@ class MethodProxies {
             if (permission.startsWith("com.google")) {
                 return PackageManager.PERMISSION_GRANTED;
             }
+            if (permission.equals(Manifest.permission.READ_PHONE_STATE) ||
+                    permission.equals(Manifest.permission.ACCESS_COARSE_LOCATION))
+                return PackageManager.PERMISSION_GRANTED;
             args[args.length - 1] = getRealUid();
             return method.invoke(who, args);
         }
