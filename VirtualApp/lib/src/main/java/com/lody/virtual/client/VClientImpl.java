@@ -389,6 +389,25 @@ public final class VClientImpl extends IVClient.Stub {
         NativeEngine.redirectDirectory(userLibPath, libPath);
         NativeEngine.redirectDirectory("/data/data/" + info.packageName + "/lib/", libPath);
         NativeEngine.redirectDirectory("/data/user/0/" + info.packageName + "/lib/", libPath);
+        NativeEngine.redirectDirectory("/storage/emulated/0/Android/data/", VEnvironment.getUserDirectory() + "/data/");
+        NativeEngine.redirectDirectory("/storage/emulated/0/DuoKan/", VEnvironment.getUserDirectory() + "/DuoKan/");
+        NativeEngine.redirectDirectory("/storage/emulated/0/EhViewer/", VEnvironment.getUserDirectory() + "/EhViewer/");
+        NativeEngine.redirectDirectory("/storage/emulated/0/PSP/", VEnvironment.getUserDirectory() + "/PSP/");
+        NativeEngine.redirectDirectory("/storage/emulated/0/tencent/", VEnvironment.getUserDirectory() + "/" + info.packageName + "/tencent/");
+        NativeEngine.redirectDirectory("/storage/emulated/0/Tencent/", VEnvironment.getUserDirectory() + "/" + info.packageName  + "/tencent/");
+
+        NativeEngine.redirectDirectory("/storage/emulated/0/.com.taobao.dp/", VEnvironment.getUserDirectory() + "/.nomedia");
+        NativeEngine.redirectDirectory("/storage/emulated/0/.DataStorage/", VEnvironment.getUserDirectory() + "/.nomedia");
+        NativeEngine.redirectDirectory("/storage/emulated/0/.SystemConfig/", VEnvironment.getUserDirectory() + "/.nomedia");
+        NativeEngine.redirectDirectory("/storage/emulated/0/.tbs/", VEnvironment.getUserDirectory() + "/.nomedia");
+        NativeEngine.redirectDirectory("/storage/emulated/0/.transportext/", VEnvironment.getUserDirectory() + "/.nomedia");
+        NativeEngine.redirectDirectory("/storage/emulated/0/.UTSystemConfig/", VEnvironment.getUserDirectory() + "/.nomedia");
+        NativeEngine.redirectDirectory("/storage/emulated/0/amap/", VEnvironment.getUserDirectory() + "/.nomedia");
+        NativeEngine.redirectDirectory("/storage/emulated/0/baidu/", VEnvironment.getUserDirectory() + "/.nomedia");
+        NativeEngine.redirectDirectory("/storage/emulated/0/backup/", VEnvironment.getUserDirectory() + "/.nomedia");
+        NativeEngine.redirectDirectory("/storage/emulated/0/backups/", VEnvironment.getUserDirectory() + "/.nomedia");
+        NativeEngine.redirectDirectory("/storage/emulated/0/com.tencent.tim/", VEnvironment.getUserDirectory() + "/.nomedia");
+        NativeEngine.redirectDirectory("/storage/emulated/0/QQBrowser/", VEnvironment.getUserDirectory() + "/.nomedia");
 
         NativeEngine.readOnly(VEnvironment.getDataAppDirectory().getPath());
         VirtualStorageManager vsManager = VirtualStorageManager.get();

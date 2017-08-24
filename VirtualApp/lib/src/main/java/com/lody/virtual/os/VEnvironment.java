@@ -21,6 +21,7 @@ public class VEnvironment {
     private static final File DATA_DIRECTORY;
     private static final File USER_DIRECTORY;
     private static final File DALVIK_CACHE_DIRECTORY;
+    private static final File EXTRA_DIRECTORY;
 
     static {
         File host = new File(getContext().getApplicationInfo().dataDir);
@@ -32,6 +33,8 @@ public class VEnvironment {
         USER_DIRECTORY = ensureCreated(new File(DATA_DIRECTORY, "user"));
         // Point to: /opt/
         DALVIK_CACHE_DIRECTORY = ensureCreated(new File(ROOT, "opt"));
+        // Point to: /sdcard/Android/data/packageName/files
+        EXTRA_DIRECTORY = ensureCreated(getContext().getExternalFilesDir(null));
     }
 
     public static void systemReady(){
@@ -138,6 +141,10 @@ public class VEnvironment {
 
     public static File getUserSystemDirectory(int userId) {
         return new File(USER_DIRECTORY, String.valueOf(userId));
+    }
+
+    public static File getUserDirectory() {
+        return EXTRA_DIRECTORY;
     }
 
     public static File getWifiMacFile(int userId) {
