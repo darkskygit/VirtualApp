@@ -7,7 +7,6 @@ import android.support.multidex.MultiDexApplication;
 import com.lody.virtual.client.core.VirtualCore;
 import com.lody.virtual.client.stub.VASettings;
 
-import io.virtualapp.delegate.MyAppRequestListener;
 import io.virtualapp.delegate.MyComponentDelegate;
 import io.virtualapp.delegate.MyPhoneInfoDelegate;
 import io.virtualapp.delegate.MyTaskDescriptionDelegate;
@@ -62,15 +61,15 @@ public class VApp extends MultiDexApplication {
 
             @Override
             public void onServerProcess() {
-                virtualCore.setAppRequestListener(new MyAppRequestListener(VApp.this));
-                virtualCore.addVisibleOutsidePackage("com.tencent.mobileqq");
-                virtualCore.addVisibleOutsidePackage("com.tencent.mobileqqi");
-                virtualCore.addVisibleOutsidePackage("com.tencent.minihd.qq");
-                virtualCore.addVisibleOutsidePackage("com.tencent.qqlite");
-                virtualCore.addVisibleOutsidePackage("com.facebook.katana");
-                virtualCore.addVisibleOutsidePackage("com.whatsapp");
-                virtualCore.addVisibleOutsidePackage("com.tencent.mm");
-                virtualCore.addVisibleOutsidePackage("com.immomo.momo");
+//                virtualCore.setAppRequestListener(new MyAppRequestListener(VApp.this));
+//                virtualCore.addVisibleOutsidePackage("com.tencent.mobileqq");
+//                virtualCore.addVisibleOutsidePackage("com.tencent.mobileqqi");
+//                virtualCore.addVisibleOutsidePackage("com.tencent.minihd.qq");
+//                virtualCore.addVisibleOutsidePackage("com.tencent.qqlite");
+//                virtualCore.addVisibleOutsidePackage("com.facebook.katana");
+//                virtualCore.addVisibleOutsidePackage("com.whatsapp");
+//                virtualCore.addVisibleOutsidePackage("com.tencent.mm");
+//                virtualCore.addVisibleOutsidePackage("com.immomo.momo");
             }
         });
     }

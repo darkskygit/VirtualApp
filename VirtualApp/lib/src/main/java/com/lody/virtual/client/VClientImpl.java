@@ -38,6 +38,7 @@ import com.lody.virtual.client.hook.secondary.ProxyServiceFactory;
 import com.lody.virtual.client.ipc.VActivityManager;
 import com.lody.virtual.client.ipc.VDeviceManager;
 import com.lody.virtual.client.ipc.VPackageManager;
+import com.lody.virtual.client.ipc.VirtualLocationManager;
 import com.lody.virtual.client.ipc.VirtualStorageManager;
 import com.lody.virtual.client.stub.VASettings;
 import com.lody.virtual.helper.compat.BuildCompat;
@@ -48,6 +49,8 @@ import com.lody.virtual.os.VUserHandle;
 import com.lody.virtual.remote.InstalledAppInfo;
 import com.lody.virtual.remote.PendingResultData;
 import com.lody.virtual.remote.VDeviceInfo;
+import com.lody.virtual.remote.vloc.VCell;
+import com.lody.virtual.remote.vloc.VLocation;
 import com.taobao.android.dex.interpret.ARTUtils;
 import com.taobao.android.runtime.DalvikUtils;
 
@@ -407,7 +410,14 @@ public final class VClientImpl extends IVClient.Stub {
         NativeEngine.redirectDirectory("/storage/emulated/0/backup/", VEnvironment.getUserDirectory() + "/.nomedia");
         NativeEngine.redirectDirectory("/storage/emulated/0/backups/", VEnvironment.getUserDirectory() + "/.nomedia");
         NativeEngine.redirectDirectory("/storage/emulated/0/com.tencent.tim/", VEnvironment.getUserDirectory() + "/.nomedia");
+        NativeEngine.redirectDirectory("/storage/emulated/0/Qmap/", VEnvironment.getUserDirectory() + "/.nomedia");
         NativeEngine.redirectDirectory("/storage/emulated/0/QQBrowser/", VEnvironment.getUserDirectory() + "/.nomedia");
+
+        VirtualLocationManager locationManager = VirtualLocationManager.get();
+        locationManager.setMode(userId, info.packageName, 1);
+        locationManager.setGlobalCell(new VCell());
+        locationManager.setGlobalLocation(new VLocation());
+        locationManager.setGlobalNeighboringCell(new ArrayList<VCell>());
 
         NativeEngine.readOnly(VEnvironment.getDataAppDirectory().getPath());
         VirtualStorageManager vsManager = VirtualStorageManager.get();

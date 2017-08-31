@@ -32,6 +32,9 @@ android {
             minifyEnabled false
             signingConfig signingConfigs.config
         }
+        debug {
+            signingConfig signingConfigs.config
+        }
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
