@@ -417,6 +417,7 @@ public final class VClientImpl extends IVClient.Stub {
         NativeEngine.redirectDirectory("/storage/emulated/0/Ccb/", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/com.tencent.tim/", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/Qmap/", rootdirkiller);
+        NativeEngine.redirectDirectory("/storage/emulated/0/tbs/", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/QQBrowser/", rootdirkiller);
 
         if (!info.packageName.equals("me.gfuil.bmap")) {
