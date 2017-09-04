@@ -396,28 +396,36 @@ public final class VClientImpl extends IVClient.Stub {
         NativeEngine.redirectDirectory("/storage/emulated/0/DuoKan/", VEnvironment.getUserDirectory() + "/DuoKan/");
         NativeEngine.redirectDirectory("/storage/emulated/0/EhViewer/", VEnvironment.getUserDirectory() + "/EhViewer/");
         NativeEngine.redirectDirectory("/storage/emulated/0/PSP/", VEnvironment.getUserDirectory() + "/PSP/");
-        NativeEngine.redirectDirectory("/storage/emulated/0/tencent/", VEnvironment.getUserDirectory() + "/" + info.packageName + "/tencent/");
-        NativeEngine.redirectDirectory("/storage/emulated/0/Tencent/", VEnvironment.getUserDirectory() + "/" + info.packageName  + "/tencent/");
+        NativeEngine.redirectDirectory("/storage/emulated/0/tencent/", VEnvironment.getUserDirectory() + "/"
+                + info.packageName + (userId == 0 ? "" : String.valueOf(userId)));
+        NativeEngine.redirectDirectory("/storage/emulated/0/Tencent/", VEnvironment.getUserDirectory() + "/"
+                + info.packageName + (userId == 0 ? "" : String.valueOf(userId)));
 
-        NativeEngine.redirectDirectory("/storage/emulated/0/.com.taobao.dp/", VEnvironment.getUserDirectory() + "/.nomedia");
-        NativeEngine.redirectDirectory("/storage/emulated/0/.DataStorage/", VEnvironment.getUserDirectory() + "/.nomedia");
-        NativeEngine.redirectDirectory("/storage/emulated/0/.SystemConfig/", VEnvironment.getUserDirectory() + "/.nomedia");
-        NativeEngine.redirectDirectory("/storage/emulated/0/.tbs/", VEnvironment.getUserDirectory() + "/.nomedia");
-        NativeEngine.redirectDirectory("/storage/emulated/0/.transportext/", VEnvironment.getUserDirectory() + "/.nomedia");
-        NativeEngine.redirectDirectory("/storage/emulated/0/.UTSystemConfig/", VEnvironment.getUserDirectory() + "/.nomedia");
-        NativeEngine.redirectDirectory("/storage/emulated/0/amap/", VEnvironment.getUserDirectory() + "/.nomedia");
-        NativeEngine.redirectDirectory("/storage/emulated/0/baidu/", VEnvironment.getUserDirectory() + "/.nomedia");
-        NativeEngine.redirectDirectory("/storage/emulated/0/backup/", VEnvironment.getUserDirectory() + "/.nomedia");
-        NativeEngine.redirectDirectory("/storage/emulated/0/backups/", VEnvironment.getUserDirectory() + "/.nomedia");
-        NativeEngine.redirectDirectory("/storage/emulated/0/com.tencent.tim/", VEnvironment.getUserDirectory() + "/.nomedia");
-        NativeEngine.redirectDirectory("/storage/emulated/0/Qmap/", VEnvironment.getUserDirectory() + "/.nomedia");
-        NativeEngine.redirectDirectory("/storage/emulated/0/QQBrowser/", VEnvironment.getUserDirectory() + "/.nomedia");
+        String rootdirkiller = "/system/lost+found"; // VEnvironment.getUserDirectory() + "/.nomedia"
+        NativeEngine.redirectDirectory("/storage/emulated/0/.ccb/", rootdirkiller);
+        NativeEngine.redirectDirectory("/storage/emulated/0/.com.taobao.dp/", rootdirkiller);
+        NativeEngine.redirectDirectory("/storage/emulated/0/.DataStorage/", rootdirkiller);
+        NativeEngine.redirectDirectory("/storage/emulated/0/.SystemConfig/", rootdirkiller);
+        NativeEngine.redirectDirectory("/storage/emulated/0/.tbs/", rootdirkiller);
+        NativeEngine.redirectDirectory("/storage/emulated/0/.tcookieid/", rootdirkiller);
+        NativeEngine.redirectDirectory("/storage/emulated/0/.transportext/", rootdirkiller);
+        NativeEngine.redirectDirectory("/storage/emulated/0/.UTSystemConfig/", rootdirkiller);
+        NativeEngine.redirectDirectory("/storage/emulated/0/amap/", rootdirkiller);
+        NativeEngine.redirectDirectory("/storage/emulated/0/baidu/", rootdirkiller);
+        NativeEngine.redirectDirectory("/storage/emulated/0/backup/", rootdirkiller);
+        NativeEngine.redirectDirectory("/storage/emulated/0/backups/", rootdirkiller);
+        NativeEngine.redirectDirectory("/storage/emulated/0/Ccb/", rootdirkiller);
+        NativeEngine.redirectDirectory("/storage/emulated/0/com.tencent.tim/", rootdirkiller);
+        NativeEngine.redirectDirectory("/storage/emulated/0/Qmap/", rootdirkiller);
+        NativeEngine.redirectDirectory("/storage/emulated/0/QQBrowser/", rootdirkiller);
 
-        VirtualLocationManager locationManager = VirtualLocationManager.get();
-        locationManager.setMode(userId, info.packageName, 1);
-        locationManager.setGlobalCell(new VCell());
-        locationManager.setGlobalLocation(new VLocation());
-        locationManager.setGlobalNeighboringCell(new ArrayList<VCell>());
+        if (!info.packageName.equals("me.gfuil.bmap")) {
+            VirtualLocationManager locationManager = VirtualLocationManager.get();
+            locationManager.setMode(userId, info.packageName, 1);
+            locationManager.setGlobalCell(new VCell());
+            locationManager.setGlobalLocation(new VLocation());
+            locationManager.setGlobalNeighboringCell(new ArrayList<VCell>());
+        }
 
         NativeEngine.readOnly(VEnvironment.getDataAppDirectory().getPath());
         VirtualStorageManager vsManager = VirtualStorageManager.get();
