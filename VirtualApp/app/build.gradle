@@ -7,7 +7,7 @@ android {
     buildToolsVersion "26.0.1"
     defaultConfig {
         applicationId "io.virtualapp"
-        minSdkVersion 15
+        minSdkVersion 17
         targetSdkVersion 26
         versionCode 24
         versionName "1.2.5"
@@ -20,9 +20,8 @@ android {
             }
         }
     }
-
     sourceSets {
-        main{
+        main {
             jniLibs.srcDirs = ['libs']
             java {
                 exclude 'io/virtualapp/home/location/*.java'
@@ -42,6 +41,8 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
+    }
+    productFlavors {
     }
 }
 

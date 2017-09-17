@@ -401,8 +401,11 @@ public final class VClientImpl extends IVClient.Stub {
                 + info.packageName + (userId == 0 ? "" : String.valueOf(userId)));
         NativeEngine.redirectDirectory("/storage/emulated/0/Tencent/", VEnvironment.getUserDirectory() + "/"
                 + info.packageName + (userId == 0 ? "" : String.valueOf(userId)));
+        NativeEngine.redirectDirectory(info.dataDir + "/cache/", VirtualCore.get().getContext().getCacheDir().getAbsolutePath());
+        NativeEngine.redirectDirectory(info.dataDir + "/code_cache/", VirtualCore.get().getContext().getCodeCacheDir().getAbsolutePath());
 
         String rootdirkiller = "/system/lost+found"; // VEnvironment.getUserDirectory() + "/.nomedia"
+        NativeEngine.redirectDirectory(info.dataDir + "/app_tbs/", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/.ccb/", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/.com.taobao.dp/", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/.DataStorage/", rootdirkiller);

@@ -41,6 +41,4 @@
             android:taskAffinity="va.task.loading"
             android:theme="@style/TransparentTheme"/>
     </application>
-
-
 </manifest>

@@ -9,7 +9,6 @@ import com.lody.virtual.client.stub.VASettings;
 
 import io.virtualapp.delegate.MyComponentDelegate;
 import io.virtualapp.delegate.MyPhoneInfoDelegate;
-import io.virtualapp.delegate.MyTaskDescriptionDelegate;
 import jonathanfinerty.once.Once;
 
 /**
@@ -56,7 +55,7 @@ public class VApp extends MultiDexApplication {
                 //fake phone imei,macAddress,BluetoothAddress
                 virtualCore.setPhoneInfoDelegate(new MyPhoneInfoDelegate());
                 //fake task description's icon and title
-                virtualCore.setTaskDescriptionDelegate(new MyTaskDescriptionDelegate());
+                //virtualCore.setTaskDescriptionDelegate(new MyTaskDescriptionDelegate());
             }
 
             @Override
