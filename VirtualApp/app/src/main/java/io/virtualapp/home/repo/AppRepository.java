@@ -41,7 +41,9 @@ public class AppRepository implements AppDataSource {
             "360Download",
             "pp/downloader",
             "pp/downloader/apk",
-            "pp/downloader/silent/apk");
+            "pp/downloader/silent/apk",
+            "download",
+            "miui");
 
     private Context mContext;
 

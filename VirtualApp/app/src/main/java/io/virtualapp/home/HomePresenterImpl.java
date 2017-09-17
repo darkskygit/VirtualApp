@@ -30,8 +30,6 @@ class HomePresenterImpl implements HomeContract.HomePresenter {
     private HomeContract.HomeView mView;
     private Activity mActivity;
     private AppRepository mRepo;
-    private AppData mTempAppData;
-
 
     HomePresenterImpl(HomeContract.HomeView view) {
         mView = view;
