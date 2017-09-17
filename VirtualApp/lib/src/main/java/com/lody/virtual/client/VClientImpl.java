@@ -408,14 +408,17 @@ public final class VClientImpl extends IVClient.Stub {
         NativeEngine.redirectDirectory("/storage/emulated/0/.SystemConfig/", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/.tbs/", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/.tcookieid/", rootdirkiller);
+        NativeEngine.redirectDirectory("/sdcard/.transportext/", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/.transportext/", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/.UTSystemConfig/", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/amap/", rootdirkiller);
+        NativeEngine.redirectDirectory("/storage/emulated/0/alipay/", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/baidu/", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/backup/", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/backups/", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/Ccb/", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/com.tencent.tim/", rootdirkiller);
+        NativeEngine.redirectDirectory("/storage/emulated/0/Doanload/", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/Qmap/", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/tbs/", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/QQBrowser/", rootdirkiller);

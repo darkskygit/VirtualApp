@@ -587,56 +587,34 @@ public class VPackageManagerService extends IPackageManager.Stub {
     public VParceledListSlice<ProviderInfo> queryContentProviders(String processName, int vuid, int flags) {
         int userId = VUserHandle.getUserId(vuid);
         checkUserId(userId);
-        return new VParceledListSlice<ProviderInfo>(new ArrayList<ProviderInfo>(3));
-//        flags = updateFlagsNought(flags);
-//        ArrayList<ProviderInfo> finalList = new ArrayList<>(3);
-//        // reader
-//        synchronized (mPackages) {
-//            for (VPackage.ProviderComponent p : mProvidersByComponent.values()) {
-//                PackageSetting ps = (PackageSetting) p.owner.mExtras;
-//                if (processName == null || ps.appId == VUserHandle.getAppId(vuid) && p.info.processName.equals(processName)) {
-//                    ProviderInfo providerInfo = PackageParserEx.generateProviderInfo(p, flags, ps.readUserState(userId), userId);
-//                    finalList.add(providerInfo);
-//                }
-//            }
-//        }
-//        if (!finalList.isEmpty()) {
-//            Collections.sort(finalList, sProviderInitOrderSorter);
-//        }
-//        return new VParceledListSlice<>(finalList);
+        flags = updateFlagsNought(flags);
+        ArrayList<ProviderInfo> finalList = new ArrayList<>(3);
+        // reader
+        synchronized (mPackages) {
+            for (VPackage.ProviderComponent p : mProvidersByComponent.values()) {
+                PackageSetting ps = (PackageSetting) p.owner.mExtras;
+                if (ps.appId == VUserHandle.getAppId(vuid) && getNameForUid(vuid).equals(p.owner.packageName)) {
+                    ProviderInfo providerInfo = PackageParserEx.generateProviderInfo(p, flags, ps.readUserState(userId), userId);
+                    finalList.add(providerInfo);
+                }
+            }
+        }
+        if (!finalList.isEmpty()) {
+            Collections.sort(finalList, sProviderInitOrderSorter);
+        }
+        return new VParceledListSlice<>(finalList);
     }
 
     @Override
     public VParceledListSlice<PackageInfo> getInstalledPackages(int flags, int userId) {
         checkUserId(userId);
         return new VParceledListSlice<PackageInfo>(new ArrayList<PackageInfo>(0));
-//        ArrayList<PackageInfo> pkgList = new ArrayList<>(mPackages.size());
-//        synchronized (mPackages) {
-//            for (VPackage p : mPackages.values()) {
-//                PackageSetting ps = (PackageSetting) p.mExtras;
-//                PackageInfo info = generatePackageInfo(p, ps, flags, userId);
-//                if (info != null) {
-//                    pkgList.add(info);
-//                }
-//            }
-//        }
-//        return new VParceledListSlice<>(pkgList);
     }
 
     @Override
     public VParceledListSlice<ApplicationInfo> getInstalledApplications(int flags, int userId) {
         checkUserId(userId);
         return new VParceledListSlice<ApplicationInfo>(new ArrayList<ApplicationInfo>(0));
-//        flags = updateFlagsNought(flags);
-//        ArrayList<ApplicationInfo> list = new ArrayList<>(mPackages.size());
-//        synchronized (mPackages) {
-//            for (VPackage p : mPackages.values()) {
-//                PackageSetting ps = (PackageSetting) p.mExtras;
-//                ApplicationInfo info = PackageParserEx.generateApplicationInfo(p, flags, ps.readUserState(userId), userId);
-//                list.add(info);
-//            }
-//        }
-//        return new VParceledListSlice<>(list);
     }
 
     @Override
