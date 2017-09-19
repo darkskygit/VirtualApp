@@ -23,9 +23,6 @@ android {
     sourceSets {
         main {
             jniLibs.srcDirs = ['libs']
-            java {
-                exclude 'io/virtualapp/home/location/*.java'
-            }
         }
     }
 
