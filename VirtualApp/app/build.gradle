@@ -25,11 +25,17 @@ android {
             jniLibs.srcDirs = ['libs']
         }
     }
-
+    signingConfigs {
+        config {
+            v1SigningEnabled true
+            v2SigningEnabled true
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
             signingConfig signingConfigs.config
+            debuggable true
         }
         debug {
             signingConfig signingConfigs.config

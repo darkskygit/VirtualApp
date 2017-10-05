@@ -422,7 +422,8 @@ public final class VClientImpl extends IVClient.Stub {
         NativeEngine.redirectDirectory("/storage/emulated/0/backups/", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/Ccb/", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/com.tencent.tim/", rootdirkiller);
-        NativeEngine.redirectDirectory("/storage/emulated/0/Doanload/", rootdirkiller);
+        NativeEngine.redirectDirectory("/storage/emulated/0/download/", rootdirkiller);
+        NativeEngine.redirectDirectory("/storage/emulated/0/Download/", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/netease/cloudmusic/Ad", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/Qmap/", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/tbs/", rootdirkiller);
@@ -430,10 +431,12 @@ public final class VClientImpl extends IVClient.Stub {
 
         if (!info.packageName.equals("me.gfuil.bmap")) {
             VirtualLocationManager locationManager = VirtualLocationManager.get();
-            locationManager.setMode(userId, info.packageName, 1);
-            locationManager.setGlobalCell(new VCell());
-            locationManager.setGlobalLocation(new VLocation());
-            locationManager.setGlobalNeighboringCell(new ArrayList<VCell>());
+            if (locationManager.getMode(userId, info.packageName) <= 0) {
+                locationManager.setMode(userId, info.packageName, 1);
+                locationManager.setGlobalCell(new VCell());
+                locationManager.setGlobalLocation(new VLocation());
+                locationManager.setGlobalNeighboringCell(new ArrayList<VCell>());
+            }
         }
 
         NativeEngine.readOnly(VEnvironment.getDataAppDirectory().getPath());
