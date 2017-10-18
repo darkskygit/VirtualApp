@@ -158,7 +158,7 @@ const char *match_redirected_path(const char *_path) {
         if (startWith(path, prefix)) {
             std::string new_path = new_prefix + path.substr(prefix.length(), path.length());
             char *_new_path = strdup(new_path.c_str());
-            LOGE("[RD] %s -> %s", _path, _new_path);
+            LOGV("[RD] %s -> %s", _path, _new_path);
             return _new_path;
         }
     }
