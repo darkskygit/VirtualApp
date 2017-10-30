@@ -21,6 +21,7 @@ import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.Icon;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -55,6 +56,7 @@ import com.lody.virtual.helper.utils.ArrayUtils;
 import com.lody.virtual.helper.utils.BitmapUtils;
 import com.lody.virtual.helper.utils.ComponentUtils;
 import com.lody.virtual.helper.utils.DrawableUtils;
+import com.lody.virtual.helper.utils.Reflect;
 import com.lody.virtual.helper.utils.VLog;
 import com.lody.virtual.os.VUserHandle;
 import com.lody.virtual.os.VUserInfo;
@@ -693,6 +695,22 @@ class MethodProxies {
                 VLog.e(getClass().getSimpleName(), "Unknown flag : " + args[4]);
             }
             VNotificationManager.get().dealNotification(id, notification, getAppPkg());
+
+            /**
+             * `BaseStatusBar#updateNotification` aosp will use use
+             * `new StatusBarIcon(...notification.getSmallIcon()...)`
+             *  while in samsung SystemUI.apk ,the corresponding code comes as
+             * `new StatusBarIcon(...pkgName,notification.icon...)`
+             * the icon comes from `getSmallIcon.getResource`
+             * which will throw an exception on :x process thus crash the application
+             */
+            if (notification != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
+                    (Build.BRAND.equalsIgnoreCase("samsung") || Build.MANUFACTURER.equalsIgnoreCase("samsung"))) {
+                notification.icon = getHostContext().getApplicationInfo().icon;
+                Icon icon = Icon.createWithResource(getHostPkg(), notification.icon);
+                Reflect.on(notification).call("setSmallIcon", icon);
+            }
+
             VActivityManager.get().setServiceForeground(component, token, id, notification, removeNotification);
             return 0;
         }

@@ -51,10 +51,9 @@ import com.lody.virtual.remote.PendingResultData;
 import com.lody.virtual.remote.VDeviceInfo;
 import com.lody.virtual.remote.vloc.VCell;
 import com.lody.virtual.remote.vloc.VLocation;
-import com.taobao.android.dex.interpret.ARTUtils;
-import com.taobao.android.runtime.DalvikUtils;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -242,16 +241,6 @@ public final class VClientImpl extends IVClient.Stub {
             Process.killProcess(0);
             System.exit(0);
         }
-        if (!info.dependSystem && info.skipDexOpt) {
-            VLog.d(TAG, "Dex opt skipped.");
-            if (VirtualRuntime.isArt()) {
-                ARTUtils.init(VirtualCore.get().getContext());
-                ARTUtils.setIsDex2oatEnabled(false);
-            } else {
-                DalvikUtils.init();
-                DalvikUtils.setDexOptMode(DalvikUtils.OPTIMIZE_MODE_NONE);
-            }
-        }
         data.appInfo = VPackageManager.get().getApplicationInfo(packageName, 0, getUserId(vuid));
         data.processName = processName;
         data.providers = VPackageManager.get().queryContentProviders(processName, getVUid(), PackageManager.GET_META_DATA);
@@ -269,7 +258,7 @@ public final class VClientImpl extends IVClient.Stub {
         if (VASettings.ENABLE_IO_REDIRECT) {
             startIOUniformer();
         }
-        NativeEngine.hookNative();
+        NativeEngine.launchEngine();
         Object mainThread = VirtualCore.mainThread();
         NativeEngine.startDexOverride();
         Context context = createPackageContext(data.appInfo.packageName);
@@ -310,6 +299,9 @@ public final class VClientImpl extends IVClient.Stub {
         mInitialApplication = LoadedApk.makeApplication.call(data.info, false, null);
         mirror.android.app.ActivityThread.mInitialApplication.set(mainThread, mInitialApplication);
         ContextFixer.fixContext(mInitialApplication);
+        if (Build.VERSION.SDK_INT >= 24 && "com.tencent.mm:recovery".equals(processName)) {
+            fixWeChatRecovery(mInitialApplication);
+        }
         if (data.providers != null) {
             installContentProviders(mInitialApplication, data.providers);
         }
@@ -337,6 +329,19 @@ public final class VClientImpl extends IVClient.Stub {
         }
         VActivityManager.get().appDoneExecuting();
         VirtualCore.get().getComponentDelegate().afterApplicationCreate(mInitialApplication);
+    }
+
+    private void fixWeChatRecovery(Application app) {
+        try {
+            Field field = app.getClassLoader().loadClass("com.tencent.recovery.Recovery").getField("context");
+            field.setAccessible(true);
+            if (field.get(null) != null) {
+                return;
+            }
+            field.set(null, app.getBaseContext());
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
     }
 
     private void setupUncaughtHandler() {
@@ -382,12 +387,13 @@ public final class VClientImpl extends IVClient.Stub {
         NativeEngine.redirectDirectory("/sys/class/net/wlan0/address", wifiMacAddressFile);
         NativeEngine.redirectDirectory("/sys/class/net/eth0/address", wifiMacAddressFile);
         NativeEngine.redirectDirectory("/sys/class/net/wifi/address", wifiMacAddressFile);
+
         NativeEngine.redirectDirectory("/data/data/" + info.packageName, info.dataDir);
         NativeEngine.redirectDirectory("/data/user/0/" + info.packageName, info.dataDir);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             NativeEngine.redirectDirectory("/data/user_de/0/" + info.packageName, info.dataDir);
         }
-        String libPath = new File(VEnvironment.getDataAppPackageDirectory(info.packageName), "lib").getAbsolutePath();
+        String libPath = VEnvironment.getAppLibDirectory(info.packageName).getAbsolutePath();
         String userLibPath = new File(VEnvironment.getUserSystemDirectory(userId), info.packageName + "/lib").getAbsolutePath();
         NativeEngine.redirectDirectory(userLibPath, libPath);
         NativeEngine.redirectDirectory("/data/data/" + info.packageName + "/lib/", libPath);
@@ -457,7 +463,7 @@ public final class VClientImpl extends IVClient.Stub {
                 }
             }
         }
-        NativeEngine.hook();
+        NativeEngine.enableIORedirect();
     }
 
     @SuppressLint("SdCardPath")
@@ -502,12 +508,10 @@ public final class VClientImpl extends IVClient.Stub {
         Object mainThread = VirtualCore.mainThread();
         try {
             for (ProviderInfo cpi : providers) {
-                if (cpi.enabled) {
-                    try {
-                        ActivityThread.installProvider(mainThread, app, cpi, null);
-                    } catch (Throwable e) {
-                        e.printStackTrace();
-                    }
+                try {
+                    ActivityThread.installProvider(mainThread, app, cpi, null);
+                } catch (Throwable e) {
+                    e.printStackTrace();
                 }
             }
         } finally {
@@ -649,6 +653,9 @@ public final class VClientImpl extends IVClient.Stub {
             BroadcastReceiver receiver = (BroadcastReceiver) context.getClassLoader().loadClass(className).newInstance();
             mirror.android.content.BroadcastReceiver.setPendingResult.call(receiver, result);
             data.intent.setExtrasClassLoader(context.getClassLoader());
+            if (data.intent.getComponent() == null) {
+                data.intent.setComponent(data.component);
+            }
             receiver.onReceive(receiverContext, data.intent);
             if (mirror.android.content.BroadcastReceiver.getPendingResult.call(receiver) != null) {
                 result.finish();

@@ -37,7 +37,7 @@ public class VEnvironment {
         EXTRA_DIRECTORY = ensureCreated(getContext().getExternalFilesDir(null));
     }
 
-    public static void systemReady(){
+    public static void systemReady() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             try {
                 FileUtils.chmod(ROOT.getAbsolutePath(), FileUtils.FileMode.MODE_755);
@@ -99,7 +99,6 @@ public class VEnvironment {
     }
 
     /**
-     *
      * @return Virtual storage config file
      */
     public static File getVSConfigFile() {
@@ -120,11 +119,15 @@ public class VEnvironment {
     }
 
     public static File getOdexFile(String packageName) {
-        return new File(DALVIK_CACHE_DIRECTORY, "data@app@" + packageName + "-1@base.apk@classes.dex");
+        return new File(DALVIK_CACHE_DIRECTORY, "base.odex");
     }
 
     public static File getDataAppPackageDirectory(String packageName) {
         return ensureCreated(new File(getDataAppDirectory(), packageName));
+    }
+
+    public static File getAppLibDirectory(String packageName) {
+        return ensureCreated(new File(getDataAppPackageDirectory(packageName), "lib"));
     }
 
     public static File getPackageCacheFile(String packageName) {
