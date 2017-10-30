@@ -450,7 +450,6 @@ public final class VClientImpl extends IVClient.Stub {
             }
         }
 
-        NativeEngine.readOnly(VEnvironment.getDataAppDirectory().getPath());
         VirtualStorageManager vsManager = VirtualStorageManager.get();
         String vsPath = vsManager.getVirtualStorage(info.packageName, userId);
         boolean enable = vsManager.isVirtualStorageEnable(info.packageName, userId);
