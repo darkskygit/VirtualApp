@@ -406,6 +406,7 @@ public final class VClientImpl extends IVClient.Stub {
 
         String rootdirkiller = "/system/lost+found"; // VEnvironment.getUserDirectory() + "/.nomedia"
         NativeEngine.redirectDirectory(info.dataDir + "/app_tbs/", rootdirkiller);
+        NativeEngine.redirectDirectory(info.dataDir + "/tinker/", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/.ccb/", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/.com.taobao.dp/", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/.DataStorage/", rootdirkiller);
@@ -417,17 +418,21 @@ public final class VClientImpl extends IVClient.Stub {
         NativeEngine.redirectDirectory("/storage/emulated/0/.UTSystemConfig/", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/amap/", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/alipay/", rootdirkiller);
+        NativeEngine.redirectDirectory("/storage/emulated/0/AmapSdk/", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/baidu/", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/backup/", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/backups/", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/Ccb/", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/com.tencent.tim/", rootdirkiller);
+        NativeEngine.redirectDirectory("/storage/emulated/0/Documents/", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/download/", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/Download/", rootdirkiller);
+        NativeEngine.redirectDirectory("/storage/emulated/0/msc", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/netease/cloudmusic/Ad", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/Qmap/", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/tbs/", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/QQBrowser/", rootdirkiller);
+        NativeEngine.redirectDirectory("/storage/emulated/0/Subtitles/", rootdirkiller);
 
         if (!info.packageName.equals("me.gfuil.bmap")) {
             VirtualLocationManager locationManager = VirtualLocationManager.get();

@@ -1,7 +1,6 @@
 package io.virtualapp.home;
 
 import android.app.Activity;
-import android.graphics.Bitmap;
 
 import com.lody.virtual.GmsSupport;
 import com.lody.virtual.client.core.VirtualCore;
@@ -185,22 +184,11 @@ class HomePresenterImpl implements HomeContract.HomePresenter {
 
     @Override
     public void createShortcut(AppData data) {
-        VirtualCore.OnEmitShortcutListener listener = new VirtualCore.OnEmitShortcutListener() {
-            @Override
-            public Bitmap getIcon(Bitmap originIcon) {
-                return originIcon;
-            }
-
-            @Override
-            public String getName(String originName) {
-                return originName + "(VA)";
-            }
-        };
         if (data instanceof PackageAppData) {
-            VirtualCore.get().createShortcut(0, ((PackageAppData) data).packageName, listener);
+            VirtualCore.get().createShortcut(0, ((PackageAppData) data).packageName, null);
         } else if (data instanceof MultiplePackageAppData) {
             MultiplePackageAppData appData = (MultiplePackageAppData) data;
-            VirtualCore.get().createShortcut(appData.userId, appData.appInfo.packageName, listener);
+            VirtualCore.get().createShortcut(appData.userId, appData.appInfo.packageName, null);
         }
     }
 
