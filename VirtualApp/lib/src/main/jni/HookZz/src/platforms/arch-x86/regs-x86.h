@@ -13,3 +13,27 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
+
+#ifndef platforms_arch_x86_regs_h
+#define platforms_arch_x86_regs_h
+
+// platforms
+#include "instructions.h"
+
+// hookzz
+
+// zzdeps
+#include "hookzz.h"
+#include "zzdefs.h"
+#include "zzdeps/common/debugbreak.h"
+#include "zzdeps/zz.h"
+
+typedef enum _ZzX86Reg { X86_REG_UNDEF } ZzX86Reg;
+
+typedef struct _ZzX86RegInfo {
+
+} ZzX86RegInfo;
+
+void zz_x86_register_describe(ZzX86Reg reg, ZzX86RegInfo *ri);
+
+#endif

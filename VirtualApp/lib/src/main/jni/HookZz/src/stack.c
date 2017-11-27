@@ -44,6 +44,7 @@ ZzThreadStack *ZzNewThreadStack(zpointer key_ptr) {
 ZzCallStack *ZzNewCallStack() {
     ZzCallStack *callstack;
     callstack = (ZzCallStack *)malloc(sizeof(ZzCallStack));
+
     callstack->capacity = 4;
 
     callstack->items = (ZzCallStackItem *)malloc(sizeof(ZzCallStackItem) * callstack->capacity);
@@ -74,8 +75,8 @@ zbool ZzPushCallStack(ZzThreadStack *stack, ZzCallStack *callstack) {
         return FALSE;
 
     if (stack->size >= stack->capacity) {
-        ZzCallStack **callstacks = (ZzCallStack **)realloc(
-            stack->callstacks, sizeof(ZzCallStack *) * (stack->capacity) * 2);
+        ZzCallStack **callstacks =
+            (ZzCallStack **)realloc(stack->callstacks, sizeof(ZzCallStack *) * (stack->capacity) * 2);
         if (!callstacks)
             return FALSE;
         stack->callstacks = callstacks;
@@ -93,7 +94,8 @@ zpointer ZzGetCallStackData(CallStack *callstack_ptr, char *key) {
     ZzCallStack *callstack = (ZzCallStack *)callstack_ptr;
     if (!callstack)
         return NULL;
-    for (int i = 0; i < callstack->size; ++i) {
+    int i;
+    for (i = 0; i < callstack->size; ++i) {
         if (!strcmp(callstack->items[i].key, key)) {
             return callstack->items[i].value;
         }
@@ -105,8 +107,8 @@ ZzCallStackItem *ZzNewCallStackData(ZzCallStack *callstack) {
     if (!callstack)
         return NULL;
     if (callstack->size >= callstack->capacity) {
-        ZzCallStackItem *callstackitems = (ZzCallStackItem *)realloc(
-            callstack->items, sizeof(ZzCallStackItem) * callstack->capacity * 2);
+        ZzCallStackItem *callstackitems =
+            (ZzCallStackItem *)realloc(callstack->items, sizeof(ZzCallStackItem) * callstack->capacity * 2);
         if (!callstackitems)
             return NULL;
         callstack->items = callstackitems;
@@ -115,8 +117,7 @@ ZzCallStackItem *ZzNewCallStackData(ZzCallStack *callstack) {
     return &(callstack->items[callstack->size++]);
 }
 
-zbool ZzSetCallStackData(CallStack *callstack_ptr, char *key, zpointer value_ptr,
-                         zsize value_size) {
+zbool ZzSetCallStackData(CallStack *callstack_ptr, char *key, zpointer value_ptr, zsize value_size) {
     ZzCallStack *callstack = (ZzCallStack *)callstack_ptr;
     if (!callstack)
         return FALSE;
