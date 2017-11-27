@@ -1067,7 +1067,9 @@ class MethodProxies {
                 return PackageManager.PERMISSION_GRANTED;
             }
             if (permission.equals(Manifest.permission.READ_PHONE_STATE) ||
-                    permission.equals(Manifest.permission.ACCESS_COARSE_LOCATION))
+                    permission.equals(Manifest.permission.ACCESS_COARSE_LOCATION) ||
+                    permission.equals(Manifest.permission.RECORD_AUDIO) ||
+                    permission.equals(Manifest.permission.CAMERA))
                 return PackageManager.PERMISSION_GRANTED;
             args[args.length - 1] = getRealUid();
             return method.invoke(who, args);

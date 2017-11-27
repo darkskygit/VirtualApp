@@ -433,12 +433,22 @@ public final class VClientImpl extends IVClient.Stub {
         NativeEngine.redirectDirectory("/storage/emulated/0/Documents/", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/download/", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/Download/", rootdirkiller);
+        if (!info.packageName.equals("com.nutomic.syncthingandroid")) {
+            NativeEngine.redirectDirectory("/storage/emulated/0/DCIM/Camera/", rootdirkiller);
+            NativeEngine.redirectDirectory("/sdcard/DCIM/Camera/", rootdirkiller);
+        }
+        NativeEngine.redirectDirectory("/storage/emulated/0/libs/", rootdirkiller);
+        NativeEngine.redirectDirectory("/sdcard/libs/", rootdirkiller);
+        NativeEngine.redirectDirectory("/storage/emulated/0/logs/", rootdirkiller);
+        NativeEngine.redirectDirectory("/sdcard/libs/", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/msc", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/netease/cloudmusic/Ad", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/Qmap/", rootdirkiller);
+        NativeEngine.redirectDirectory("/sdcard/Qmap/", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/tbs/", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/QQBrowser/", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/Subtitles/", rootdirkiller);
+        NativeEngine.redirectDirectory("/storage/emulated/0/system/", rootdirkiller);
 
         if (!info.packageName.equals("me.gfuil.bmap")) {
             VirtualLocationManager locationManager = VirtualLocationManager.get();
