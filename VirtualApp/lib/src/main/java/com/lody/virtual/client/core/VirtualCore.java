@@ -19,6 +19,8 @@ import android.os.ConditionVariable;
 import android.os.Looper;
 import android.os.Process;
 import android.os.RemoteException;
+import android.support.v4.content.pm.ShortcutInfoCompat;
+import android.support.v4.content.pm.ShortcutManagerCompat;
 
 import com.lody.virtual.R;
 import com.lody.virtual.client.VClientImpl;
@@ -442,19 +444,24 @@ public final class VirtualCore {
         Intent shortcutIntent = new Intent();
         shortcutIntent.setClassName(getHostPkg(), Constants.SHORTCUT_PROXY_ACTIVITY_NAME);
         shortcutIntent.addCategory(Intent.CATEGORY_DEFAULT);
+        shortcutIntent.setAction(Intent.ACTION_VIEW);
         if (splash != null) {
             shortcutIntent.putExtra("_VA_|_splash_", splash.toUri(0));
         }
-        shortcutIntent.putExtra("_VA_|_intent_", targetIntent);
+//        shortcutIntent.putExtra("_VA_|_intent_", targetIntent);
         shortcutIntent.putExtra("_VA_|_uri_", targetIntent.toUri(0));
         shortcutIntent.putExtra("_VA_|_user_id_", userId);
 
-        Intent addIntent = new Intent();
-        addIntent.putExtra(Intent.EXTRA_SHORTCUT_INTENT, shortcutIntent);
-        addIntent.putExtra(Intent.EXTRA_SHORTCUT_NAME, name);
-        addIntent.putExtra(Intent.EXTRA_SHORTCUT_ICON, icon);
-        addIntent.setAction("com.android.launcher.action.INSTALL_SHORTCUT");
-        context.sendBroadcast(addIntent);
+        if (ShortcutManagerCompat.isRequestPinShortcutSupported(context)) {
+            ShortcutInfoCompat info = new ShortcutInfoCompat.Builder(context, packageName + userId)
+                    .setIcon(icon).setShortLabel(name).setIntent(shortcutIntent).build();
+            try {
+                ShortcutManagerCompat.requestPinShortcut(context, info, null);
+            } catch (NullPointerException e) {
+                // 已经添加快捷方式
+            }
+
+        }
         return true;
     }
 
