@@ -152,6 +152,7 @@ public class AppRepository implements AppDataSource {
     @Override
     public InstallResult addVirtualApp(AppInfoLite info) {
         int flags = InstallStrategy.COMPARE_VERSION;
+        info.fastOpen = false; // disable fast open for compile.
         if (info.fastOpen) {
             flags |= InstallStrategy.DEPEND_SYSTEM_IF_EXIST;
         }

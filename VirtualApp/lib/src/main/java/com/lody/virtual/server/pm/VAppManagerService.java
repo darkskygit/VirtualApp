@@ -242,7 +242,7 @@ public class VAppManagerService implements IAppManager {
             boolean runDexOpt = false;
             if (VirtualRuntime.isArt()) {
                 try {
-                    ArtDexOptimizer.interpretDex2Oat(ps.apkPath, VEnvironment.getOdexFile(ps.packageName).getPath());
+                    ArtDexOptimizer.compileDex2Oat(ps.apkPath, VEnvironment.getOdexFile(ps.packageName).getPath());
                 } catch (IOException e) {
                     e.printStackTrace();
                     runDexOpt = true;
