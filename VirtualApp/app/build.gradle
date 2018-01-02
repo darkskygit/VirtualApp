@@ -8,7 +8,7 @@ android {
         minSdkVersion 17
         targetSdkVersion 26
         versionCode 24
-        versionName "0.1.8"
+        versionName "0.2.1"
         multiDexEnabled true
         android {
             defaultConfig {
@@ -43,11 +43,6 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-    productFlavors {
-    }
-}
-
-android {
     lintOptions {
         checkReleaseBuilds false
         // Or, if you prefer, you can continue to check for errors in release builds,

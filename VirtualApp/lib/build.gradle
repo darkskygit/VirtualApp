@@ -27,7 +27,11 @@ android {
     }
     lintOptions {
         //IJobService need NewApi
-        warning 'NewApi', 'OnClick'
+        warning 'NewApi','OnClick'
+        checkReleaseBuilds false
+        // Or, if you prefer, you can continue to check for errors in release builds,
+        // but continue the build even when errors are found:
+        abortOnError false
     }
     productFlavors {
     }
@@ -37,5 +41,5 @@ android {
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     compile 'com.android.support:appcompat-v7:26.1.0'
-    compile 'me.weishu.exposed:exposed-core:0.2.5'
+    compile 'me.weishu.exposed:exposed-core:0.3.1'
 }
