@@ -4,6 +4,10 @@ import com.lody.virtual.client.hook.base.BinderInvocationProxy;
 import com.lody.virtual.client.hook.base.Inject;
 import com.lody.virtual.client.hook.base.ReplaceCallingPkgMethodProxy;
 import com.lody.virtual.client.hook.base.ReplaceLastPkgMethodProxy;
+import com.lody.virtual.client.hook.base.StaticMethodProxy;
+import com.lody.virtual.client.hook.utils.MethodParameterUtils;
+
+import java.lang.reflect.Method;
 
 import mirror.com.android.internal.telephony.IPhoneSubInfo;
 
@@ -24,7 +28,12 @@ public class PhoneSubInfoStub extends BinderInvocationProxy {
 		addMethodProxy(new ReplaceCallingPkgMethodProxy("getDeviceSvn"));
 		addMethodProxy(new ReplaceLastPkgMethodProxy("getDeviceSvnUsingSubId"));
 		addMethodProxy(new ReplaceCallingPkgMethodProxy("getSubscriberId"));
-		addMethodProxy(new ReplaceLastPkgMethodProxy("getSubscriberIdForSubscriber"));
+		addMethodProxy(new StaticMethodProxy("getSubscriberIdForSubscriber") {
+			@Override
+			public Object call(Object who, Method method, Object... args) throws Throwable {
+				return "";
+			}
+		});
 		addMethodProxy(new ReplaceCallingPkgMethodProxy("getGroupIdLevel1"));
 		addMethodProxy(new ReplaceLastPkgMethodProxy("getGroupIdLevel1ForSubscriber"));
 		addMethodProxy(new ReplaceCallingPkgMethodProxy("getLine1Number"));
