@@ -21,6 +21,11 @@ public class TelephonyRegistryStub extends BinderInvocationProxy {
 		super.onBindMethods();
 		addMethodProxy(new ReplaceCallingPkgMethodProxy("listen"));
 		addMethodProxy(new ReplaceSequencePkgMethodProxy("listenForSubscriber", 1) {
+			// 傻逼微信
+			@Override
+			public Object call(Object who, Method method, Object... args) throws Throwable {
+				return null;
+			}
 			@Override
 			public boolean beforeCall(Object who, Method method, Object... args) {
 				if (android.os.Build.VERSION.SDK_INT >= 17) {

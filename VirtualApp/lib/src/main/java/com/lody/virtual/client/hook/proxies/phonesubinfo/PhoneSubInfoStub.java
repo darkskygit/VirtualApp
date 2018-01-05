@@ -29,6 +29,7 @@ public class PhoneSubInfoStub extends BinderInvocationProxy {
 		addMethodProxy(new ReplaceLastPkgMethodProxy("getDeviceSvnUsingSubId"));
 		addMethodProxy(new ReplaceCallingPkgMethodProxy("getSubscriberId"));
 		addMethodProxy(new StaticMethodProxy("getSubscriberIdForSubscriber") {
+			// 傻逼支付宝
 			@Override
 			public Object call(Object who, Method method, Object... args) throws Throwable {
 				return "";
