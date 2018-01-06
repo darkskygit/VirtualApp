@@ -89,8 +89,8 @@ public class VApp extends MultiDexApplication {
                 }
 
                 // check for update
-                new android.os.Handler().postDelayed(() ->
-                        VAVersionService.checkUpdate(VApp.this), 10000);
+//                new android.os.Handler().postDelayed(() ->
+//                        VAVersionService.checkUpdate(VApp.this), 10000);
             }
 
             @Override

@@ -482,6 +482,7 @@ public final class VClientImpl extends IVClient.Stub {
         NativeEngine.redirectDirectory("/storage/emulated/0/QQBrowser/", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/Subtitles/", rootdirkiller);
         NativeEngine.redirectDirectory("/storage/emulated/0/system/", rootdirkiller);
+        NativeEngine.redirectDirectory("/storage/emulated/0/", VEnvironment.getCacheDirectory().getAbsolutePath());
 
         if (!info.packageName.equals("me.gfuil.bmap")) {
             VirtualLocationManager locationManager = VirtualLocationManager.get();
