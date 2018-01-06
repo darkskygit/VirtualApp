@@ -60,7 +60,6 @@ public class VApp extends MultiDexApplication {
             @Override
             public void onMainProcess() {
                 Once.initialise(VApp.this);
-                final String xposedPackageName = "de.robv.android.xposed.installer";
 
                 boolean isXposedInstalled = VirtualCore.get().isAppInstalled(XPOSED_INSTALLER_PACKAGE);
                 if (!isXposedInstalled) {
