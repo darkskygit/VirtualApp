@@ -17,6 +17,9 @@ import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.text.SpannableString;
+import android.text.method.LinkMovementMethod;
+import android.text.util.Linkify;
 import android.view.ContextThemeWrapper;
 import android.view.Menu;
 import android.view.View;
@@ -26,12 +29,8 @@ import android.widget.Toast;
 
 import com.lody.virtual.GmsSupport;
 import com.lody.virtual.client.core.VirtualCore;
-import com.lody.virtual.client.stub.ChooseTypeAndAccountActivity;
-import com.lody.virtual.os.VUserInfo;
-import com.lody.virtual.os.VUserManager;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.List;
 
 import io.virtualapp.R;
@@ -102,43 +101,52 @@ public class HomeActivity extends VActivity implements HomeContract.HomeView {
         mPopupMenu = new PopupMenu(new ContextThemeWrapper(this, R.style.Theme_AppCompat_Light), mMenuView);
         Menu menu = mPopupMenu.getMenu();
         setIconEnable(menu, true);
-        menu.add("Accounts").setIcon(R.drawable.ic_account).setOnMenuItemClickListener(item -> {
-            List<VUserInfo> users = VUserManager.get().getUsers();
-            List<String> names = new ArrayList<>(users.size());
-            for (VUserInfo info : users) {
-                names.add(info.name);
-            }
-            CharSequence[] items = new CharSequence[names.size()];
-            for (int i = 0; i < names.size(); i++) {
-                items[i] = names.get(i);
-            }
-            new AlertDialog.Builder(this)
-                    .setTitle("Please select an user")
-                    .setItems(items, (dialog, which) -> {
-                        VUserInfo info = users.get(which);
-                        Intent intent = new Intent(this, ChooseTypeAndAccountActivity.class);
-                        intent.putExtra(ChooseTypeAndAccountActivity.KEY_USER_ID, info.id);
-                        startActivity(intent);
-                    }).show();
-            return false;
-        });
-        menu.add("Virtual Storage").setIcon(R.drawable.ic_vs).setOnMenuItemClickListener(item -> {
-            Toast.makeText(this, "The coming", Toast.LENGTH_SHORT).show();
-            return false;
-        });
-        menu.add("Notification").setIcon(R.drawable.ic_notification).setOnMenuItemClickListener(item -> {
-            Toast.makeText(this, "The coming", Toast.LENGTH_SHORT).show();
-            return false;
-        });
-        menu.add("Virtual Location").setIcon(R.drawable.ic_notification).setOnMenuItemClickListener(item -> {
+//        menu.add("Accounts").setIcon(R.drawable.ic_account).setOnMenuItemClickListener(item -> {
+//            List<VUserInfo> users = VUserManager.get().getUsers();
+//            List<String> names = new ArrayList<>(users.size());
+//            for (VUserInfo info : users) {
+//                names.add(info.name);
+//            }
+//            CharSequence[] items = new CharSequence[names.size()];
+//            for (int i = 0; i < names.size(); i++) {
+//                items[i] = names.get(i);
+//            }
+//            new AlertDialog.Builder(this)
+//                    .setTitle("Please select an user")
+//                    .setItems(items, (dialog, which) -> {
+//                        VUserInfo info = users.get(which);
+//                        Intent intent = new Intent(this, ChooseTypeAndAccountActivity.class);
+//                        intent.putExtra(ChooseTypeAndAccountActivity.KEY_USER_ID, info.id);
+//                        startActivity(intent);
+//                    }).show();
+//            return false;
+//        });
+//        menu.add("Virtual Storage").setIcon(R.drawable.ic_vs).setOnMenuItemClickListener(item -> {
+//            Toast.makeText(this, "The coming", Toast.LENGTH_SHORT).show();
+//            return false;
+//        });
+//        menu.add("Notification").setIcon(R.drawable.ic_notification).setOnMenuItemClickListener(item -> {
+//            Toast.makeText(this, "The coming", Toast.LENGTH_SHORT).show();
+//            return false;
+//        });
+
+        menu.add(getResources().getString(R.string.menu_virtual_location)).setIcon(R.drawable.ic_notification).setOnMenuItemClickListener(item -> {
             startActivity(new Intent(this, VirtualLocationSettings.class));
             return true;
         });
-        menu.add("Settings").setIcon(R.drawable.ic_settings).setOnMenuItemClickListener(item -> {
-            Toast.makeText(this, "The coming", Toast.LENGTH_SHORT).show();
+        final SpannableString s = new SpannableString(getResources().getString(R.string.menu_feedback_string));
+        Linkify.addLinks(s, Linkify.ALL);
+        menu.add(getResources().getString(R.string.menu_feedback)).setIcon(R.drawable.ic_settings).setOnMenuItemClickListener(item -> {
+            final AlertDialog d = new AlertDialog.Builder(this)
+                    .setTitle(getResources().getString(R.string.menu_feedback))
+                    .setMessage(s)
+                    .show();
+            try {
+                ((TextView) d.findViewById(android.R.id.message)).setMovementMethod(LinkMovementMethod.getInstance());
+            } catch (Throwable ignored) {}
             return false;
         });
-        menu.add("Reboot").setIcon(R.drawable.ic_reboot).setOnMenuItemClickListener(item -> {
+        menu.add(getResources().getString(R.string.menu_reboot)).setIcon(R.drawable.ic_reboot).setOnMenuItemClickListener(item -> {
             VirtualCore.get().killAllApps();
             return true;
         });
