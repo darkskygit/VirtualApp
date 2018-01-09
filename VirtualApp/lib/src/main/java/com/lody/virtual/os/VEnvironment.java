@@ -38,8 +38,8 @@ public class VEnvironment {
         DALVIK_CACHE_DIRECTORY = ensureCreated(new File(ROOT, "opt"));
         // Point to: /sdcard/Android/data/packageName/files
         EXTRA_DIRECTORY = ensureCreated(getContext().getExternalFilesDir(null));
-        // Point to: /sdcard/Android/data/packageName/cache
-        EXTRA_ROOT_DIRECTORY = ensureCreated(getContext().getExternalCacheDir());
+        // Point to: /sdcard/Android/data/packageName/files/root
+        EXTRA_ROOT_DIRECTORY = ensureCreated(new File(EXTRA_DIRECTORY, "root"));
     }
 
     public static void systemReady() {
