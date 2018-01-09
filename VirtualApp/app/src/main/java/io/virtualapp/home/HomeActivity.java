@@ -10,6 +10,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.RemoteException;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.OrientationHelper;
@@ -40,7 +41,6 @@ import io.virtualapp.abs.ui.VActivity;
 import io.virtualapp.abs.ui.VUiKit;
 import io.virtualapp.home.adapters.LaunchpadAdapter;
 import io.virtualapp.home.adapters.decorations.ItemOffsetDecoration;
-import io.virtualapp.home.location.VirtualLocationSettings;
 import io.virtualapp.home.models.AddAppButton;
 import io.virtualapp.home.models.AppData;
 import io.virtualapp.home.models.AppInfoLite;
@@ -77,6 +77,32 @@ public class HomeActivity extends VActivity implements HomeContract.HomeView {
     private LaunchpadAdapter mLaunchpadAdapter;
     private Handler mUiHandler;
 
+    //region ---------------package observer---------------
+    private VirtualCore.PackageObserver mPackageObserver = new VirtualCore.PackageObserver() {
+        @Override
+        public void onPackageInstalled(String packageName) throws RemoteException {
+            if (!isForground) {
+                runOnUiThread(() -> mPresenter.dataChanged());
+            }
+        }
+
+        @Override
+        public void onPackageUninstalled(String packageName) throws RemoteException {
+            if (!isForground) {
+                runOnUiThread(() -> mPresenter.dataChanged());
+            }
+        }
+
+        @Override
+        public void onPackageInstalledAsUser(int userId, String packageName) throws RemoteException {
+        }
+
+        @Override
+        public void onPackageUninstalledAsUser(int userId, String packageName) throws RemoteException {
+        }
+    };
+    private boolean isForground = false;
+    //endregion
 
     public static void goHome(Context context) {
         Intent intent = new Intent(context, HomeActivity.class);
@@ -95,45 +121,32 @@ public class HomeActivity extends VActivity implements HomeContract.HomeView {
         initLaunchpad();
         initMenu();
         new HomePresenterImpl(this).start();
+        VirtualCore.get().registerObserver(mPackageObserver);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        isForground = true;
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        isForground = false;
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        VirtualCore.get().unregisterObserver(mPackageObserver);
     }
 
     private void initMenu() {
         mPopupMenu = new PopupMenu(new ContextThemeWrapper(this, R.style.Theme_AppCompat_Light), mMenuView);
         Menu menu = mPopupMenu.getMenu();
         setIconEnable(menu, true);
-//        menu.add("Accounts").setIcon(R.drawable.ic_account).setOnMenuItemClickListener(item -> {
-//            List<VUserInfo> users = VUserManager.get().getUsers();
-//            List<String> names = new ArrayList<>(users.size());
-//            for (VUserInfo info : users) {
-//                names.add(info.name);
-//            }
-//            CharSequence[] items = new CharSequence[names.size()];
-//            for (int i = 0; i < names.size(); i++) {
-//                items[i] = names.get(i);
-//            }
-//            new AlertDialog.Builder(this)
-//                    .setTitle("Please select an user")
-//                    .setItems(items, (dialog, which) -> {
-//                        VUserInfo info = users.get(which);
-//                        Intent intent = new Intent(this, ChooseTypeAndAccountActivity.class);
-//                        intent.putExtra(ChooseTypeAndAccountActivity.KEY_USER_ID, info.id);
-//                        startActivity(intent);
-//                    }).show();
-//            return false;
-//        });
-//        menu.add("Virtual Storage").setIcon(R.drawable.ic_vs).setOnMenuItemClickListener(item -> {
-//            Toast.makeText(this, "The coming", Toast.LENGTH_SHORT).show();
-//            return false;
-//        });
-//        menu.add("Notification").setIcon(R.drawable.ic_notification).setOnMenuItemClickListener(item -> {
-//            Toast.makeText(this, "The coming", Toast.LENGTH_SHORT).show();
-//            return false;
-//        });
 
-        menu.add(getResources().getString(R.string.menu_virtual_location)).setIcon(R.drawable.ic_notification).setOnMenuItemClickListener(item -> {
-            startActivity(new Intent(this, VirtualLocationSettings.class));
-            return true;
-        });
         final SpannableString s = new SpannableString(getResources().getString(R.string.menu_feedback_string));
         Linkify.addLinks(s, Linkify.ALL);
         menu.add(getResources().getString(R.string.menu_feedback)).setIcon(R.drawable.ic_settings).setOnMenuItemClickListener(item -> {
