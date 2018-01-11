@@ -22,6 +22,7 @@ import android.os.Process;
 import android.os.RemoteException;
 import android.support.v4.content.pm.ShortcutInfoCompat;
 import android.support.v4.content.pm.ShortcutManagerCompat;
+import android.support.v4.graphics.drawable.IconCompat;
 
 import com.lody.virtual.R;
 import com.lody.virtual.client.VClientImpl;
@@ -457,7 +458,7 @@ public final class VirtualCore {
 
         if (ShortcutManagerCompat.isRequestPinShortcutSupported(context)) {
             ShortcutInfoCompat info = new ShortcutInfoCompat.Builder(context, packageName + userId)
-                    .setIcon(icon).setShortLabel(name).setIntent(shortcutIntent).build();
+                    .setIcon(IconCompat.createWithBitmap(icon)).setShortLabel(name).setIntent(shortcutIntent).build();
             try {
                 ShortcutManagerCompat.requestPinShortcut(context, info, null);
             } catch (NullPointerException e) {
