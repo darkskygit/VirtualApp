@@ -41,5 +41,9 @@ android {
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     compile 'com.android.support:appcompat-v7:26.1.0'
-    compile 'me.weishu.exposed:exposed-core:0.3.4'
+    compile 'com.github.android-hacker:exposed:0.3.5'
+}
+
+repositories {
+    maven { url 'https://jitpack.io' }
 }
