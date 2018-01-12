@@ -18,9 +18,6 @@ import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.helper.ItemTouchHelper;
-import android.text.SpannableString;
-import android.text.method.LinkMovementMethod;
-import android.text.util.Linkify;
 import android.view.ContextThemeWrapper;
 import android.view.Menu;
 import android.view.View;
@@ -36,6 +33,7 @@ import java.util.List;
 
 import io.virtualapp.R;
 import io.virtualapp.VCommends;
+import io.virtualapp.about.AboutActivity;
 import io.virtualapp.abs.nestedadapter.SmartRecyclerAdapter;
 import io.virtualapp.abs.ui.VActivity;
 import io.virtualapp.abs.ui.VUiKit;
@@ -147,18 +145,11 @@ public class HomeActivity extends VActivity implements HomeContract.HomeView {
         Menu menu = mPopupMenu.getMenu();
         setIconEnable(menu, true);
 
-        final SpannableString s = new SpannableString(getResources().getString(R.string.menu_feedback_string));
-        Linkify.addLinks(s, Linkify.ALL);
-        menu.add(getResources().getString(R.string.menu_feedback)).setIcon(R.drawable.ic_settings).setOnMenuItemClickListener(item -> {
-            final AlertDialog d = new AlertDialog.Builder(this)
-                    .setTitle(getResources().getString(R.string.menu_feedback))
-                    .setMessage(s)
-                    .show();
-            try {
-                ((TextView) d.findViewById(android.R.id.message)).setMovementMethod(LinkMovementMethod.getInstance());
-            } catch (Throwable ignored) {}
-            return false;
+        menu.add(getResources().getString(R.string.menu_about)).setIcon(R.drawable.ic_settings).setOnMenuItemClickListener(item -> {
+            startActivity(new Intent(HomeActivity.this, AboutActivity.class));
+            return true;
         });
+
         menu.add(getResources().getString(R.string.menu_reboot)).setIcon(R.drawable.ic_reboot).setOnMenuItemClickListener(item -> {
             VirtualCore.get().killAllApps();
             return true;
@@ -438,7 +429,9 @@ public class HomeActivity extends VActivity implements HomeContract.HomeView {
             }
             try {
                 AppData data = mLaunchpadAdapter.getList().get(target.getAdapterPosition());
-                return data.canReorder();
+                if (data != null) {
+                    return data.canReorder();
+                }
             } catch (IndexOutOfBoundsException e) {
                 e.printStackTrace();
             }

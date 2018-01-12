@@ -43,6 +43,8 @@
             android:taskAffinity="va.task.loading"
             android:theme="@style/TransparentTheme"/>
 
+
+        <activity android:name=".about.AboutActivity" />
         <service android:name=".update.VAVersionService"
             android:exported="true"
             android:enabled="true"/>

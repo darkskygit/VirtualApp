@@ -16,7 +16,6 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.ConditionVariable;
-import android.os.IBinder;
 import android.os.Looper;
 import android.os.Process;
 import android.os.RemoteException;
@@ -32,20 +31,17 @@ import com.lody.virtual.client.fixer.ContextFixer;
 import com.lody.virtual.client.hook.delegate.ComponentDelegate;
 import com.lody.virtual.client.hook.delegate.PhoneInfoDelegate;
 import com.lody.virtual.client.hook.delegate.TaskDescriptionDelegate;
+import com.lody.virtual.client.ipc.LocalProxyUtils;
 import com.lody.virtual.client.ipc.ServiceManagerNative;
 import com.lody.virtual.client.ipc.VActivityManager;
 import com.lody.virtual.client.ipc.VPackageManager;
 import com.lody.virtual.client.stub.VASettings;
 import com.lody.virtual.helper.compat.BundleCompat;
-import com.lody.virtual.helper.ipcbus.IPCBus;
-import com.lody.virtual.helper.ipcbus.IPCSingleton;
-import com.lody.virtual.helper.ipcbus.IServerCache;
 import com.lody.virtual.helper.utils.BitmapUtils;
 import com.lody.virtual.os.VUserHandle;
 import com.lody.virtual.remote.InstallResult;
 import com.lody.virtual.remote.InstalledAppInfo;
-import com.lody.virtual.server.interfaces.IAppManager;
-import com.lody.virtual.server.ServiceCache;
+import com.lody.virtual.server.IAppManager;
 import com.lody.virtual.server.interfaces.IAppRequestListener;
 import com.lody.virtual.server.interfaces.IPackageObserver;
 import com.lody.virtual.server.interfaces.IUiCallback;
@@ -89,7 +85,7 @@ public final class VirtualCore {
      */
     private String processName;
     private ProcessType processType;
-    private IPCSingleton<IAppManager> singleton = new IPCSingleton<>(IAppManager.class);
+    private IAppManager mService;
     private boolean isStartUp;
     private PackageInfo hostPkgInfo;
     private int systemPid;
@@ -185,17 +181,6 @@ public final class VirtualCore {
             mainThread = ActivityThread.currentActivityThread.call();
             unHookPackageManager = context.getPackageManager();
             hostPkgInfo = unHookPackageManager.getPackageInfo(context.getPackageName(), PackageManager.GET_PROVIDERS);
-            IPCBus.initialize(new IServerCache() {
-                @Override
-                public void join(String serverName, IBinder binder) {
-                    ServiceCache.addService(serverName, binder);
-                }
-
-                @Override
-                public IBinder query(String serverName) {
-                    return ServiceManagerNative.getService(serverName);
-                }
-            });
             detectProcessType();
             InvocationStubManager invocationStubManager = InvocationStubManager.getInstance();
             invocationStubManager.init();
@@ -270,7 +255,19 @@ public final class VirtualCore {
     }
 
     private IAppManager getService() {
-        return singleton.get();
+        if (mService == null
+                || (!VirtualCore.get().isVAppProcess() && !mService.asBinder().isBinderAlive())) {
+            synchronized (this) {
+                Object remote = getStubInterface();
+                mService = LocalProxyUtils.genProxy(IAppManager.class, remote);
+            }
+        }
+        return mService;
+    }
+
+    private Object getStubInterface() {
+        return IAppManager.Stub
+                .asInterface(ServiceManagerNative.getService(ServiceManagerNative.APP));
     }
 
     /**

@@ -7,8 +7,8 @@ android {
         applicationId "io.virtualapp"
         minSdkVersion 22
         targetSdkVersion 26
-        versionCode 28
-        versionName "0.2.8"
+        versionCode 32
+        versionName "0.3.2"
         multiDexEnabled true
         android {
             defaultConfig {
@@ -68,4 +68,5 @@ dependencies {
     compile 'com.jonathanfinerty.once:once:1.0.3'
     compile 'com.kyleduo.switchbutton:library:1.4.6'
     compile('com.allenliu.versionchecklib:library:1.8.3')
+    compile 'com.github.medyo:android-about-page:1.2.2'
 }
