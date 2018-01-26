@@ -2,13 +2,17 @@ package io.virtualapp;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Looper;
 import android.support.multidex.MultiDexApplication;
 import android.util.Log;
 
+import com.lody.virtual.client.core.CrashHandler;
 import com.lody.virtual.client.core.InstallStrategy;
 import com.lody.virtual.client.core.VirtualCore;
 import com.lody.virtual.client.stub.VASettings;
+import com.lody.virtual.helper.utils.DeviceUtil;
 import com.lody.virtual.helper.utils.FileUtils;
+import com.lody.virtual.helper.utils.VLog;
 import com.lody.virtual.os.VEnvironment;
 
 import java.io.File;
@@ -27,6 +31,8 @@ import me.weishu.exposed.LogcatService;
  * @author Lody
  */
 public class VApp extends MultiDexApplication {
+
+    private static final String TAG = "VApp";
 
     public static final String XPOSED_INSTALLER_PACKAGE = "de.robv.android.xposed.installer";
 
@@ -62,13 +68,25 @@ public class VApp extends MultiDexApplication {
                 Once.initialise(VApp.this);
 
                 boolean isXposedInstalled = VirtualCore.get().isAppInstalled(XPOSED_INSTALLER_PACKAGE);
+                try {
+                    File oldXposedInstallerApk = getFileStreamPath("XposedInstaller_1_13.apk");
+                    if (oldXposedInstallerApk.exists()) {
+                        VirtualCore.get().uninstallPackage(XPOSED_INSTALLER_PACKAGE);
+                        oldXposedInstallerApk.delete();
+                        isXposedInstalled = false;
+                        Log.d(TAG, "remove xposed installer success!");
+                    }
+                } catch (Throwable e) {
+                    VLog.d(TAG, "remove xposed install failed.", e);
+                }
+
                 if (!isXposedInstalled) {
-                    File xposedInstallerApk = getFileStreamPath("XposedInstaller.apk");
+                    File xposedInstallerApk = getFileStreamPath("XposedInstaller_1_24.apk");
                     if (!xposedInstallerApk.exists()) {
                         InputStream input = null;
                         OutputStream output = null;
                         try {
-                            input = getApplicationContext().getAssets().open("XposedInstaller_3.1.4.apk_");
+                            input = getApplicationContext().getAssets().open("XposedInstaller_3.1.5.apk_");
                             output = new FileOutputStream(xposedInstallerApk);
                             byte[] buffer = new byte[1024];
                             int length;
@@ -76,14 +94,14 @@ public class VApp extends MultiDexApplication {
                                 output.write(buffer, 0, length);
                             }
                         } catch (Throwable e) {
-                            Log.e("mylog", "copy file error", e);
+                            VLog.e(TAG, "copy file error", e);
                         } finally {
                             FileUtils.closeQuietly(input);
                             FileUtils.closeQuietly(output);
                         }
                     }
 
-                    if (xposedInstallerApk.isFile()) {
+                    if (xposedInstallerApk.isFile() && !DeviceUtil.isMeizuBelowN()) {
                         VirtualCore.get().installPackage(xposedInstallerApk.getPath(), InstallStrategy.TERMINATE_IF_EXIST);
                     }
                 }
@@ -101,6 +119,17 @@ public class VApp extends MultiDexApplication {
                 virtualCore.setPhoneInfoDelegate(new MyPhoneInfoDelegate());
                 //fake task description's icon and title
                 //virtualCore.setTaskDescriptionDelegate(new MyTaskDescriptionDelegate());
+                virtualCore.setCrashHandler(new CrashHandler() {
+                    @Override
+                    public void handleUncaughtException(Thread t, Throwable e) {
+                        Log.i(TAG, "uncaught :" + t, e);
+                        if (t == Looper.getMainLooper().getThread()) {
+                            System.exit(0);
+                        } else {
+                            Log.e(TAG, "ignore uncaught exception of thread: " + t);
+                        }
+                    }
+                });
                 // ensure the logcat service alive when every virtual process start.
                 LogcatService.start(VApp.this, VEnvironment.getDataUserPackageDirectory(0, XPOSED_INSTALLER_PACKAGE));
             }

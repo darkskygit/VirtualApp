@@ -10,7 +10,9 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.Process;
 import android.os.RemoteException;
+import android.os.SystemClock;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.OrientationHelper;
@@ -27,11 +29,14 @@ import android.widget.Toast;
 
 import com.lody.virtual.GmsSupport;
 import com.lody.virtual.client.core.VirtualCore;
+import com.lody.virtual.helper.utils.DeviceUtil;
 
+import java.io.File;
 import java.lang.reflect.Method;
 import java.util.List;
 
 import io.virtualapp.R;
+import io.virtualapp.VApp;
 import io.virtualapp.VCommends;
 import io.virtualapp.about.AboutActivity;
 import io.virtualapp.abs.nestedadapter.SmartRecyclerAdapter;
@@ -120,6 +125,7 @@ public class HomeActivity extends VActivity implements HomeContract.HomeView {
         initMenu();
         new HomePresenterImpl(this).start();
         VirtualCore.get().registerObserver(mPackageObserver);
+        alertForMeizu();
     }
 
     @Override
@@ -152,9 +158,37 @@ public class HomeActivity extends VActivity implements HomeContract.HomeView {
 
         menu.add(getResources().getString(R.string.menu_reboot)).setIcon(R.drawable.ic_reboot).setOnMenuItemClickListener(item -> {
             VirtualCore.get().killAllApps();
+            showRebootTips();
             return true;
         });
         mMenuView.setOnClickListener(v -> mPopupMenu.show());
+    }
+
+    long lastClickRebootTime = 0;
+    int continuousClickCount = 0;
+    private void showRebootTips() {
+        final long INTERVAL = 2000;
+        long now = SystemClock.elapsedRealtime();
+        if (now - lastClickRebootTime > INTERVAL) {
+            Toast.makeText(this, R.string.reboot_tips_1, Toast.LENGTH_SHORT).show();
+            // valid click, reset
+            continuousClickCount = 0;
+        } else {
+            continuousClickCount++;
+            switch (continuousClickCount) {
+                case 1:
+                    Toast.makeText(this, R.string.reboot_tips_2, Toast.LENGTH_SHORT).show();
+                    break;
+                case 3:
+                    Toast.makeText(this, R.string.reboot_tips_3, Toast.LENGTH_SHORT).show();
+                    mUiHandler.postDelayed(() -> Process.killProcess(Process.myPid()), 1000);
+                    break;
+                default:
+                    Toast.makeText(this, R.string.reboot_tips_1, Toast.LENGTH_SHORT).show();
+                    break;
+            }
+        }
+        lastClickRebootTime = now;
     }
 
     private static void setIconEnable(Menu menu, boolean enable) {
@@ -209,14 +243,19 @@ public class HomeActivity extends VActivity implements HomeContract.HomeView {
 
     private void deleteApp(int position) {
         AppData data = mLaunchpadAdapter.getList().get(position);
-        new AlertDialog.Builder(this)
+        AlertDialog alertDialog = new AlertDialog.Builder(this)
                 .setTitle("Delete app")
                 .setMessage("Do you want to delete " + data.getName() + "?")
                 .setPositiveButton(android.R.string.yes, (dialog, which) -> {
                     mPresenter.deleteApp(data);
                 })
                 .setNegativeButton(android.R.string.no, null)
-                .show();
+                .create();
+        try {
+            alertDialog.show();
+        } catch (Throwable ignored) {
+            // BadTokenException.
+        }
     }
 
     private void createShortcut(int position) {
@@ -351,8 +390,15 @@ public class HomeActivity extends VActivity implements HomeContract.HomeView {
         if (resultCode == RESULT_OK && data != null) {
             List<AppInfoLite> appList = data.getParcelableArrayListExtra(VCommends.EXTRA_APP_INFO_LIST);
             if (appList != null) {
+                boolean showTip = false;
                 for (AppInfoLite info : appList) {
+                    if (new File(info.path).length() > 1024 * 1024 * 24) {
+                        showTip = true;
+                    }
                     mPresenter.addApp(info);
+                }
+                if (showTip) {
+                    Toast.makeText(this, R.string.large_app_install_tips, Toast.LENGTH_SHORT).show();
                 }
             }
         }
@@ -499,5 +545,24 @@ public class HomeActivity extends VActivity implements HomeContract.HomeView {
                 mCreateShortcutTextView.setTextColor(Color.WHITE);
             }
         }
+    }
+
+    private void alertForMeizu() {
+        if (!DeviceUtil.isMeizuBelowN()) {
+            return;
+        }
+        boolean isXposedInstalled = VirtualCore.get().isAppInstalled(VApp.XPOSED_INSTALLER_PACKAGE);
+        if (isXposedInstalled) {
+            return;
+        }
+        mUiHandler.postDelayed(() -> {
+            AlertDialog alertDialog = new AlertDialog.Builder(getContext())
+                    .setTitle(R.string.meizu_device_tips_title)
+                    .setMessage(R.string.meizu_device_tips_content)
+                    .setPositiveButton(android.R.string.yes, (dialog, which) -> {
+                    })
+                    .create();
+            alertDialog.show();
+        }, 2000);
     }
 }
