@@ -76,9 +76,6 @@ public class PackageAppData implements AppData {
 
     @Override
     public boolean canReorder() {
-        if (VApp.XPOSED_INSTALLER_PACKAGE.equals(packageName)) {
-            return false;
-        }
         return true;
     }
 
