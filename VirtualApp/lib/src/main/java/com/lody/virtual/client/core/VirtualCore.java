@@ -17,6 +17,9 @@ import android.content.pm.ShortcutManager;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.Icon;
 import android.os.Build;
 import android.os.Bundle;
@@ -24,9 +27,6 @@ import android.os.ConditionVariable;
 import android.os.Looper;
 import android.os.Process;
 import android.os.RemoteException;
-import android.support.v4.content.pm.ShortcutInfoCompat;
-import android.support.v4.content.pm.ShortcutManagerCompat;
-import android.support.v4.graphics.drawable.IconCompat;
 
 import com.lody.virtual.R;
 import com.lody.virtual.client.VClientImpl;
@@ -52,7 +52,9 @@ import com.lody.virtual.server.interfaces.IPackageObserver;
 import com.lody.virtual.server.interfaces.IUiCallback;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 import dalvik.system.DexFile;
@@ -414,6 +416,28 @@ public final class VirtualCore {
         return intent;
     }
 
+    public static Bitmap drawableToBitmap(Drawable drawable) {
+        Bitmap bitmap = null;
+
+        if (drawable instanceof BitmapDrawable) {
+            BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
+            if(bitmapDrawable.getBitmap() != null) {
+                return bitmapDrawable.getBitmap();
+            }
+        }
+
+        if(drawable.getIntrinsicWidth() <= 0 || drawable.getIntrinsicHeight() <= 0) {
+            bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888); // Single color bitmap will be created of 1x1 pixel
+        } else {
+            bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+        }
+
+        Canvas canvas = new Canvas(bitmap);
+        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+        drawable.draw(canvas);
+        return bitmap;
+    }
+
     public boolean createShortcut(int userId, String packageName, OnEmitShortcutListener listener) {
         return createShortcut(userId, packageName, null, listener);
     }
@@ -449,6 +473,10 @@ public final class VirtualCore {
         if (targetIntent == null) {
             return false;
         }
+        for (HashMap.Entry<String,IconPackManager.IconPack> entry :
+                new IconPackManager().getAvailableIconPacks(pm, getPM(), false).entrySet()) {
+            icon = entry.getValue().getIconForIntent(targetIntent, packageName, icon);
+        }
         Intent shortcutIntent = new Intent();
         shortcutIntent.setClassName(getHostPkg(), Constants.SHORTCUT_PROXY_ACTIVITY_NAME);
         shortcutIntent.addCategory(Intent.CATEGORY_DEFAULT);
@@ -460,15 +488,15 @@ public final class VirtualCore {
         shortcutIntent.putExtra("_VA_|_uri_", targetIntent.toUri(0));
         shortcutIntent.putExtra("_VA_|_user_id_", userId);
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            return createDeskShortcutAboveO(context, id, name, icon, shortcutIntent);
+        }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
             // bad parcel.
             shortcutIntent.removeExtra("_VA_|_intent_");
             // crate app shortcuts.
             createShortcutAboveN(context, id, name, icon, shortcutIntent);
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            return createDeskShortcutAboveO(context, id, name, icon, shortcutIntent);
         }
 
         Intent addIntent = new Intent();
@@ -515,7 +543,11 @@ public final class VirtualCore {
             // PendingIntent shortcutCallbackIntent = PendingIntent.getBroadcast(context, 0,
             // new Intent(context, MyReceiver.class), PendingIntent.FLAG_UPDATE_CURRENT);
 
-            shortcutManager.requestPinShortcut(info, null);
+            try {
+                shortcutManager.requestPinShortcut(info, null);
+            } catch (Exception e) {
+                return false;
+            }
             return true;
         }
         return false;
