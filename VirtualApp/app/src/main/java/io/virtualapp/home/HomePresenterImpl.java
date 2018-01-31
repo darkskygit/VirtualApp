@@ -221,12 +221,10 @@ class HomePresenterImpl implements HomeContract.HomePresenter {
     public void createShortcut(AppData data) {
         boolean result = false;
         if (data instanceof PackageAppData) {
-            VirtualCore.get().createShortcut(0, ((PackageAppData) data).packageName, null);
-            result = VirtualCore.get().createShortcut(0, ((PackageAppData) data).packageName, listener);
+            result = VirtualCore.get().createShortcut(0, ((PackageAppData) data).packageName, null);
         } else if (data instanceof MultiplePackageAppData) {
             MultiplePackageAppData appData = (MultiplePackageAppData) data;
-            VirtualCore.get().createShortcut(appData.userId, appData.appInfo.packageName, null);
-            result = VirtualCore.get().createShortcut(appData.userId, appData.appInfo.packageName, listener);
+            result = VirtualCore.get().createShortcut(appData.userId, appData.appInfo.packageName, null);
         }
         if (result) {
             Toast.makeText(mActivity, R.string.create_shortcut_success, Toast.LENGTH_SHORT).show();
