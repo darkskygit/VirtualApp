@@ -3,6 +3,7 @@ package io.virtualapp.home;
 import android.animation.Animator;
 import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Canvas;
@@ -16,6 +17,7 @@ import android.os.PowerManager;
 import android.os.Process;
 import android.os.RemoteException;
 import android.os.SystemClock;
+import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
@@ -43,6 +45,7 @@ import io.virtualapp.R;
 import io.virtualapp.VApp;
 import io.virtualapp.VCommends;
 import io.virtualapp.about.AboutActivity;
+import io.virtualapp.abs.Function;
 import io.virtualapp.abs.nestedadapter.SmartRecyclerAdapter;
 import io.virtualapp.abs.ui.VActivity;
 import io.virtualapp.abs.ui.VUiKit;
@@ -71,13 +74,21 @@ public class HomeActivity extends VActivity implements HomeContract.HomeView {
 
     private static final String TAG = HomeActivity.class.getSimpleName();
 
+    private static final String SHOW_DOZE_ALERT_KEY = "SHOW_DOZE_ALERT_KEY";
+
     private HomeContract.HomePresenter mPresenter;
     private TwoGearsView mLoadingView;
     private RecyclerView mLauncherView;
     private View mMenuView;
     private PopupMenu mPopupMenu;
     private View mBottomArea;
+    private View mLeftArea;
+    private View mRightArea;
     private View mCreateShortcutBox;
+    private View mClearAppBox;
+    private TextView mClearAppTextView;
+    private View mKillAppBox;
+    private TextView mKillAppTextView;
     private TextView mCreateShortcutTextView;
     private View mDeleteAppBox;
     private TextView mDeleteAppTextView;
@@ -212,6 +223,12 @@ public class HomeActivity extends VActivity implements HomeContract.HomeView {
         mLauncherView = (RecyclerView) findViewById(R.id.home_launcher);
         mMenuView = findViewById(R.id.home_menu);
         mBottomArea = findViewById(R.id.bottom_area);
+        mLeftArea = findViewById(R.id.left_area);
+        mRightArea = findViewById(R.id.right_area);
+        mClearAppBox = findViewById(R.id.clear_app_area);
+        mClearAppTextView = (TextView) findViewById(R.id.clear_app_text);
+        mKillAppBox = findViewById(R.id.kill_app_area);
+        mKillAppTextView = (TextView) findViewById(R.id.kill_app_text);
         mCreateShortcutBox = findViewById(R.id.create_shortcut_area);
         mCreateShortcutTextView = (TextView) findViewById(R.id.create_shortcut_text);
         mDeleteAppBox = findViewById(R.id.delete_app_area);
@@ -253,8 +270,8 @@ public class HomeActivity extends VActivity implements HomeContract.HomeView {
         }
         AppData data = mLaunchpadAdapterList.get(position);
         AlertDialog alertDialog = new AlertDialog.Builder(this)
-                .setTitle("Delete app")
-                .setMessage("Do you want to delete " + data.getName() + "?")
+                .setTitle(R.string.home_menu_delete_title)
+                .setMessage(getResources().getString(R.string.home_menu_delete_content, data.getName()))
                 .setPositiveButton(android.R.string.yes, (dialog, which) -> {
                     mPresenter.deleteApp(data);
                 })
@@ -267,7 +284,52 @@ public class HomeActivity extends VActivity implements HomeContract.HomeView {
         }
     }
 
+    private void clearApp(int position) {
+        List<AppData> mLaunchpadAdapterList = mLaunchpadAdapter.getList();
+        if (position >= mLaunchpadAdapterList.size() || position < 0) {
+            return;
+        }
+        AppData data = mLaunchpadAdapterList.get(position);
+        AlertDialog alertDialog = new AlertDialog.Builder(this)
+                .setTitle(R.string.home_menu_clear_title)
+                .setMessage(getResources().getString(R.string.home_menu_clear_content, data.getName()))
+                .setPositiveButton(android.R.string.yes, (dialog, which) -> {
+                    mPresenter.clearApp(data);
+                })
+                .setNegativeButton(android.R.string.no, null)
+                .create();
+        try {
+            alertDialog.show();
+        } catch (Throwable ignored) {
+            // BadTokenException.
+        }
+    }
+
+    private void killApp(int position) {
+        List<AppData> mLaunchpadAdapterList = mLaunchpadAdapter.getList();
+        if (position >= mLaunchpadAdapterList.size() || position < 0) {
+            return;
+        }
+        AppData data = mLaunchpadAdapterList.get(position);
+        AlertDialog alertDialog = new AlertDialog.Builder(this)
+                .setTitle(R.string.home_menu_kill_title)
+                .setMessage(getResources().getString(R.string.home_menu_kill_content, data.getName()))
+                .setPositiveButton(android.R.string.yes, (dialog, which) -> {
+                    mPresenter.killApp(data);
+                })
+                .setNegativeButton(android.R.string.no, null)
+                .create();
+        try {
+            alertDialog.show();
+        } catch (Throwable ignored) {
+            // BadTokenException.
+        }
+    }
+
     private void createShortcut(int position) {
+        if (position < 0) {
+            return;
+        }
         AppData model = mLaunchpadAdapter.getList().get(position);
         if (model instanceof PackageAppData || model instanceof MultiplePackageAppData) {
             mPresenter.createShortcut(model);
@@ -284,35 +346,62 @@ public class HomeActivity extends VActivity implements HomeContract.HomeView {
         mBottomArea.setTranslationY(mBottomArea.getHeight());
         mBottomArea.setVisibility(View.VISIBLE);
         mBottomArea.animate().translationY(0).setDuration(500L).start();
+        mLeftArea.setTranslationX(-mLeftArea.getWidth());
+        mLeftArea.setVisibility(View.VISIBLE);
+        mLeftArea.animate().translationX(0).setDuration(500L).start();
+        mRightArea.setTranslationX(mRightArea.getWidth());
+        mRightArea.setVisibility(View.VISIBLE);
+        mRightArea.animate().translationX(0).setDuration(500L).start();
     }
 
     @Override
     public void hideBottomAction() {
         mBottomArea.setTranslationY(0);
+
+        class HideAnimatorListener implements Animator.AnimatorListener {
+
+            View v;
+            HideAnimatorListener(View v) {
+                this.v = v;
+            }
+
+            @Override
+            public void onAnimationStart(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                v.setVisibility(View.GONE);
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+                v.setVisibility(View.GONE);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+
+            }
+        }
+
         ObjectAnimator transAnim = ObjectAnimator.ofFloat(mBottomArea, "translationY", 0, mBottomArea.getHeight());
-        transAnim.addListener(new Animator.AnimatorListener() {
-            @Override
-            public void onAnimationStart(Animator animator) {
-
-            }
-
-            @Override
-            public void onAnimationEnd(Animator animator) {
-                mBottomArea.setVisibility(View.GONE);
-            }
-
-            @Override
-            public void onAnimationCancel(Animator animator) {
-                mBottomArea.setVisibility(View.GONE);
-            }
-
-            @Override
-            public void onAnimationRepeat(Animator animator) {
-
-            }
-        });
+        transAnim.addListener(new HideAnimatorListener(mBottomArea));
         transAnim.setDuration(500L);
         transAnim.start();
+
+        mLeftArea.setTranslationX(0);
+        ObjectAnimator transAnimLeft = ObjectAnimator.ofFloat(mLeftArea, "translationX", 0, -mLeftArea.getWidth());
+        transAnim.addListener(new HideAnimatorListener(mLeftArea));
+        transAnimLeft.setDuration(500L);
+        transAnimLeft.start();
+
+        mRightArea.setTranslationX(0);
+        ObjectAnimator transAnimRight = ObjectAnimator.ofFloat(mRightArea, "translationX", 0, mRightArea.getWidth());
+        transAnim.addListener(new HideAnimatorListener(mRightArea));
+        transAnimRight.setDuration(500L);
+        transAnimRight.start();
     }
 
     @Override
@@ -349,6 +438,9 @@ public class HomeActivity extends VActivity implements HomeContract.HomeView {
     @Override
     public void addAppToLauncher(AppData model) {
         List<AppData> dataList = mLaunchpadAdapter.getList();
+        if (dataList == null) {
+            return;
+        }
         boolean replaced = false;
         for (int i = 0; i < dataList.size(); i++) {
             AppData data = dataList.get(i);
@@ -418,6 +510,8 @@ public class HomeActivity extends VActivity implements HomeContract.HomeView {
         int[] location = new int[2];
         boolean upAtDeleteAppArea;
         boolean upAtCreateShortcutArea;
+        boolean upAtClearAppArea;
+        boolean upAtKillAppArea;
         RecyclerView.ViewHolder dragHolder;
 
         LauncherTouchCallback() {
@@ -479,7 +573,7 @@ public class HomeActivity extends VActivity implements HomeContract.HomeView {
 
         @Override
         public boolean canDropOver(RecyclerView recyclerView, RecyclerView.ViewHolder current, RecyclerView.ViewHolder target) {
-            if (upAtCreateShortcutArea || upAtDeleteAppArea) {
+            if (upAtCreateShortcutArea || upAtDeleteAppArea || upAtClearAppArea || upAtKillAppArea) {
                 return false;
             }
             try {
@@ -509,6 +603,10 @@ public class HomeActivity extends VActivity implements HomeContract.HomeView {
                         createShortcut(viewHolder.getAdapterPosition());
                     } else if (upAtDeleteAppArea) {
                         deleteApp(viewHolder.getAdapterPosition());
+                    } else if (upAtClearAppArea) {
+                        clearApp(viewHolder.getAdapterPosition());
+                    } else if (upAtKillAppArea) {
+                        killApp(viewHolder.getAdapterPosition());
                     }
                 }
                 dragHolder = null;
@@ -532,27 +630,46 @@ public class HomeActivity extends VActivity implements HomeContract.HomeView {
             int y = (int) (location[1] + dY);
 
             mBottomArea.getLocationInWindow(location);
-            int baseLine = location[1] - mBottomArea.getHeight();
+            // int baseLine = location[1] - mBottomArea.getHeight();
+            int baseLine = location[1]; // shorten area
             if (y >= baseLine) {
                 mDeleteAppBox.getLocationInWindow(location);
                 int deleteAppAreaStartX = location[0];
                 if (x < deleteAppAreaStartX) {
-                    upAtCreateShortcutArea = true;
-                    upAtDeleteAppArea = false;
-                    mCreateShortcutTextView.setTextColor(Color.parseColor("#0099cc"));
-                    mDeleteAppTextView.setTextColor(Color.WHITE);
+                    setMenuView(true, false, false, false);
+                    return;
                 } else {
-                    upAtDeleteAppArea = true;
-                    upAtCreateShortcutArea = false;
-                    mDeleteAppTextView.setTextColor(Color.parseColor("#0099cc"));
-                    mCreateShortcutTextView.setTextColor(Color.WHITE);
+                    setMenuView( false, true, false, false);
+                    return;
                 }
-            } else {
-                upAtCreateShortcutArea = false;
-                upAtDeleteAppArea = false;
-                mDeleteAppTextView.setTextColor(Color.WHITE);
-                mCreateShortcutTextView.setTextColor(Color.WHITE);
             }
+
+            mLeftArea.getLocationInWindow(location);
+            if (x <= location[0]) {
+                setMenuView(false, false, true, false);
+                return;
+            }
+
+            mRightArea.getLocationInWindow(location);
+            if (x >= location[0]) {
+                setMenuView(false, false, false, true);
+                return;
+            }
+
+            setMenuView( false, false, false, false);
+        }
+
+        private void setMenuView(boolean showCreateShortcut, boolean showDelete, boolean showClear, boolean showStop) {
+            upAtDeleteAppArea = showDelete;
+            upAtCreateShortcutArea = showCreateShortcut;
+            upAtKillAppArea = showStop;
+            upAtClearAppArea = showClear;
+            int color = Color.parseColor("#0099cc");
+            Function<Boolean, Integer> getColor = r -> r ? color : Color.WHITE;
+            mKillAppTextView.setTextColor(getColor.apply(showStop));
+            mCreateShortcutTextView.setTextColor(getColor.apply(showCreateShortcut));
+            mDeleteAppTextView.setTextColor(getColor.apply(showDelete));
+            mClearAppTextView.setTextColor(getColor.apply(showClear));
         }
     }
 
@@ -585,6 +702,10 @@ public class HomeActivity extends VActivity implements HomeContract.HomeView {
         if (powerManager == null) {
             return;
         }
+        boolean showAlert = PreferenceManager.getDefaultSharedPreferences(this).getBoolean(SHOW_DOZE_ALERT_KEY, true);
+        if (!showAlert) {
+            return;
+        }
         String packageName = getPackageName();
         boolean ignoringBatteryOptimizations = powerManager.isIgnoringBatteryOptimizations(packageName);
         if (!ignoringBatteryOptimizations) {
@@ -594,9 +715,24 @@ public class HomeActivity extends VActivity implements HomeContract.HomeView {
                         .setTitle(R.string.alert_for_doze_mode_title)
                         .setMessage(R.string.alert_for_doze_mode_content)
                         .setPositiveButton(R.string.alert_for_doze_mode_yes, (dialog, which) -> {
-                            startActivity(new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
-                                    Uri.parse("package:" + packageName)));
+                            try {
+                                startActivity(new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:" + getPackageName())));
+                            } catch (ActivityNotFoundException ignored) {
+                                // ActivityNotFoundException on some devices.
+                                try {
+                                    startActivity(new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS));
+                                } catch (Throwable e) {
+                                    PreferenceManager.getDefaultSharedPreferences(HomeActivity.this)
+                                            .edit().putBoolean(SHOW_DOZE_ALERT_KEY, false).apply();
+                                }
+                            } catch (Throwable e) {
+                                PreferenceManager.getDefaultSharedPreferences(HomeActivity.this)
+                                        .edit().putBoolean(SHOW_DOZE_ALERT_KEY, false).apply();
+                            }
                         })
+                        .setNegativeButton(R.string.alert_for_doze_mode_no, (dialog, which) ->
+                                PreferenceManager.getDefaultSharedPreferences(HomeActivity.this)
+                                .edit().putBoolean(SHOW_DOZE_ALERT_KEY, false).apply())
                         .create();
                 try {
                     alertDialog.show();

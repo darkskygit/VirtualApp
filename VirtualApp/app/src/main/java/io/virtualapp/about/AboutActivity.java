@@ -30,20 +30,24 @@ public class AboutActivity extends VActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        View aboutPage = new AboutPage(this)
+        AboutPage page = new AboutPage(this)
                 .isRTL(false)
                 .setImage(R.mipmap.ic_launcher)
                 .addItem(getVersionElement())
+                .addItem(getFAQElement())
                 .addItem(getFeedbackElement())
-                .addItem(getFeedbackWechatElement())
-                .addItem(getThanksElement())
-                .addItem(getDonateElement())
-                .addEmail("twsxtd@gmail.com")
-                .addWebsite("https://github.com/android-hacker/VAExposed")
-                .addGitHub("tiann")
-                .addItem(getCopyRightsElement())
-                .create();
+                .addItem(getFeedbackWechatElement());
 
+        try {
+            page.addItem(getThanksElement())
+                    .addItem(getDonateElement())
+                    .addEmail("va1xposed@gmail.com")
+                    .addWebsite("https://github.com/android-hacker/VAExposed")
+                    .addGitHub("tiann")
+                    .addItem(getCopyRightsElement());
+        } catch (Throwable ignored) {
+        }
+        View aboutPage = page.create();
         setContentView(aboutPage);
     }
 
@@ -152,5 +156,15 @@ public class AboutActivity extends VActivity {
             }
         });
         return thanks;
+    }
+
+    Element getFAQElement() {
+        Element faq = new Element();
+        faq.setTitle(getResources().getString(R.string.about_faq_title));
+
+        Uri uri = Uri.parse("https://github.com/android-hacker/VAExposed/wiki/FAQ");
+        Intent t = new Intent(Intent.ACTION_VIEW, uri);
+        faq.setIntent(t);
+        return faq;
     }
 }

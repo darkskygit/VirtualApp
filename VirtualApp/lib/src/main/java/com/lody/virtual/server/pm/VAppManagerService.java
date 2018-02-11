@@ -323,6 +323,46 @@ public class VAppManagerService extends IAppManager.Stub {
     }
 
     @Override
+    public boolean clearPackageAsUser(int userId, String packageName) throws RemoteException {
+        if (!VUserManagerService.get().exists(userId)) {
+            return false;
+        }
+        PackageSetting ps = PackageCacheManager.getSetting(packageName);
+        if (ps != null) {
+            int[] userIds = getPackageInstalledUsers(packageName);
+            if (!ArrayUtils.contains(userIds, userId)) {
+                return false;
+            }
+            if (userIds.length == 1) {
+                clearPackage(packageName);
+            } else {
+                // Just hidden it
+                VActivityManagerService.get().killAppByPkg(packageName, userId);
+                ps.setInstalled(userId, false);
+                mPersistenceLayer.save();
+                FileUtils.deleteDir(VEnvironment.getDataUserPackageDirectory(userId, packageName));
+            }
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean clearPackage(String packageName) throws RemoteException {
+        try {
+            BroadcastSystem.get().stopApp(packageName);
+            VActivityManagerService.get().killAppByPkg(packageName, VUserHandle.USER_ALL);
+
+            for (int id : VUserManagerService.get().getUserIds()) {
+                FileUtils.deleteDir(VEnvironment.getDataUserPackageDirectory(id, packageName));
+            }
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    @Override
     public synchronized boolean uninstallPackageAsUser(String packageName, int userId) {
         if (!VUserManagerService.get().exists(userId)) {
             return false;
