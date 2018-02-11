@@ -42,7 +42,7 @@ android {
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     compile 'com.github.android-hacker:exposed:0.3.6'
-    compile 'me.weishu.exposed:exposed-core:0.4.7'
+    //compile 'me.weishu.exposed:exposed-core:0.4.7'
     compile 'com.google.inject:guice:4.1.0'
 }
 
