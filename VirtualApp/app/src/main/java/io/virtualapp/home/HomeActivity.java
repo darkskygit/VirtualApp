@@ -44,7 +44,7 @@ import java.util.List;
 import io.virtualapp.R;
 import io.virtualapp.VApp;
 import io.virtualapp.VCommends;
-import io.virtualapp.about.AboutActivity;
+import io.virtualapp.settings.AboutActivity;
 import io.virtualapp.abs.Function;
 import io.virtualapp.abs.nestedadapter.SmartRecyclerAdapter;
 import io.virtualapp.abs.ui.VActivity;
@@ -123,7 +123,7 @@ public class HomeActivity extends VActivity implements HomeContract.HomeView {
     //endregion
 
     public static void goHome(Context context) {
-        Intent intent = new Intent(context, HomeActivity.class);
+        Intent intent = new Intent(context, NewHomeActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(intent);

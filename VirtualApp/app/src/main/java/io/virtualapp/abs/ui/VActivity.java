@@ -40,4 +40,14 @@ public class VActivity extends AppCompatActivity {
     public void replaceFragment(@IdRes int id, Fragment fragment) {
         getSupportFragmentManager().beginTransaction().replace(id, fragment).commit();
     }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+    }
 }
