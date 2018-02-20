@@ -1,7 +1,5 @@
 package io.virtualapp.effects;
 
-import java.util.Random;
-
 import android.animation.ValueAnimator;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -11,6 +9,8 @@ import android.graphics.Rect;
 import android.view.View;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.Interpolator;
+
+import java.util.Random;
 
 import io.virtualapp.VApp;
 import io.virtualapp.abs.ui.VUiKit;

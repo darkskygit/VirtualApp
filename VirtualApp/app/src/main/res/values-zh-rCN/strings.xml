@@ -1,6 +1,6 @@
 <resources>
     <!--<string name="app_name">VirtualApp</string>-->
-    <string name="app_name">VirtualXposed</string>
+    <string name="app_name">沙盒</string>
     <string name="desktop">桌面</string>
     <string name="add_app">添加App</string>
     <string name="preparing">正在打开App，请稍等…</string>
@@ -81,4 +81,6 @@
     <string name="task_manage_uninstall">结束任务</string>
     <string name="settings_reboot_title">重启 VirtualXposed</string>
     <string name="settings_reboot_content">这将使所有运行在 VirtualXposed 内部的APP重启，确认要这么做吗？</string>
+    <string name="menu_accounts">账号</string>
+    <string name="menu_accounts_tips">请选择一个账号</string>
 </resources>

@@ -47,13 +47,13 @@ public class LoadingActivity extends VActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_loading);
-        loadingView = (EatBeansView) findViewById(R.id.loading_anim);
+        loadingView = findViewById(R.id.loading_anim);
         int userId = getIntent().getIntExtra(KEY_USER, -1);
         String pkg = getIntent().getStringExtra(PKG_NAME_ARGUMENT);
         appModel = PackageAppDataStorage.get().acquire(pkg);
-        ImageView iconView = (ImageView) findViewById(R.id.app_icon);
+        ImageView iconView = findViewById(R.id.app_icon);
         iconView.setImageDrawable(appModel.icon);
-        TextView nameView = (TextView) findViewById(R.id.app_name);
+        TextView nameView = findViewById(R.id.app_name);
         nameView.setText(String.format(Locale.ENGLISH, "Opening %s...", appModel.name));
         Intent intent = getIntent().getParcelableExtra(KEY_INTENT);
         if (intent == null) {

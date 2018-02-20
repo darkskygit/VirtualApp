@@ -7,8 +7,6 @@ import android.graphics.drawable.Drawable;
 
 import com.lody.virtual.remote.InstalledAppInfo;
 
-import io.virtualapp.VApp;
-
 /**
  * @author Lody
  */

@@ -1,13 +1,10 @@
 package io.virtualapp.home;
 
 import android.app.Activity;
-import android.content.Intent;
 
 import java.io.File;
 
-import io.virtualapp.VCommends;
 import io.virtualapp.home.repo.AppDataSource;
-import io.virtualapp.home.models.PackageAppData;
 import io.virtualapp.home.repo.AppRepository;
 
 /**

@@ -61,7 +61,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import me.weishu.exposed.ExposedBridge;
 import mirror.android.app.ActivityThread;
 import mirror.android.app.ActivityThreadNMR1;
 import mirror.android.app.ContextImpl;
@@ -316,14 +315,6 @@ public final class VClientImpl extends IVClient.Stub {
         boolean conflict = SpecialComponentList.isConflictingInstrumentation(packageName);
         if (!conflict) {
             InvocationStubManager.getInstance().checkEnv(AppInstrumentation.class);
-        }
-
-        ClassLoader originClassLoader = context.getClassLoader();
-        ExposedBridge.initOnce(context, data.appInfo, originClassLoader);
-        List<InstalledAppInfo> modules = VirtualCore.get().getInstalledApps(0);
-        for (InstalledAppInfo module : modules) {
-            ExposedBridge.loadModule(module.apkPath, module.getOdexFile().getParent(), module.libPath,
-                    data.appInfo, originClassLoader);
         }
 
         mInitialApplication = LoadedApk.makeApplication.call(data.info, false, null);

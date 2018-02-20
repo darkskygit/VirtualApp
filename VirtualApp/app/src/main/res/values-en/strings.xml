@@ -1,4 +1,4 @@
 <resources>
     <!--Avoid to be Override By library-->
-    <string name="app_name">VirtualXposed</string>
+    <string name="app_name">Sendbox</string>
 </resources>

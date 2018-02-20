@@ -35,22 +35,26 @@ import android.widget.Toast;
 
 import com.lody.virtual.GmsSupport;
 import com.lody.virtual.client.core.VirtualCore;
+import com.lody.virtual.client.stub.ChooseTypeAndAccountActivity;
 import com.lody.virtual.helper.utils.DeviceUtil;
+import com.lody.virtual.os.VUserInfo;
+import com.lody.virtual.os.VUserManager;
 
 import java.io.File;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 
 import io.virtualapp.R;
 import io.virtualapp.VApp;
 import io.virtualapp.VCommends;
-import io.virtualapp.settings.AboutActivity;
 import io.virtualapp.abs.Function;
 import io.virtualapp.abs.nestedadapter.SmartRecyclerAdapter;
 import io.virtualapp.abs.ui.VActivity;
 import io.virtualapp.abs.ui.VUiKit;
 import io.virtualapp.home.adapters.LaunchpadAdapter;
 import io.virtualapp.home.adapters.decorations.ItemOffsetDecoration;
+import io.virtualapp.home.location.VirtualLocationSettings;
 import io.virtualapp.home.models.AddAppButton;
 import io.virtualapp.home.models.AppData;
 import io.virtualapp.home.models.AppInfoLite;
@@ -123,7 +127,7 @@ public class HomeActivity extends VActivity implements HomeContract.HomeView {
     //endregion
 
     public static void goHome(Context context) {
-        Intent intent = new Intent(context, NewHomeActivity.class);
+        Intent intent = new Intent(context, HomeActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(intent);
@@ -166,13 +170,31 @@ public class HomeActivity extends VActivity implements HomeContract.HomeView {
         mPopupMenu = new PopupMenu(new ContextThemeWrapper(this, R.style.Theme_AppCompat_Light), mMenuView);
         Menu menu = mPopupMenu.getMenu();
         setIconEnable(menu, true);
-
-        menu.add(getResources().getString(R.string.menu_about)).setIcon(R.drawable.ic_settings).setOnMenuItemClickListener(item -> {
-            startActivity(new Intent(HomeActivity.this, AboutActivity.class));
+        menu.add(R.string.menu_accounts).setIcon(R.drawable.ic_account).setOnMenuItemClickListener(item -> {
+            List<VUserInfo> users = VUserManager.get().getUsers();
+            List<String> names = new ArrayList<>(users.size());
+            for (VUserInfo info : users) {
+                names.add(info.name);
+            }
+            CharSequence[] items = new CharSequence[names.size()];
+            for (int i = 0; i < names.size(); i++) {
+                items[i] = names.get(i);
+            }
+            new AlertDialog.Builder(this)
+                    .setTitle(R.string.menu_accounts_tips)
+                    .setItems(items, (dialog, which) -> {
+                        VUserInfo info = users.get(which);
+                        Intent intent = new Intent(this, ChooseTypeAndAccountActivity.class);
+                        intent.putExtra(ChooseTypeAndAccountActivity.KEY_USER_ID, info.id);
+                        startActivity(intent);
+                    }).show();
+            return false;
+        });
+        menu.add(getResources().getString(R.string.menu_virtual_location)).setIcon(R.drawable.ic_notification).setOnMenuItemClickListener(item -> {
+            startActivity(new Intent(this, VirtualLocationSettings.class));
             return true;
         });
-
-        menu.add(getResources().getString(R.string.menu_reboot)).setIcon(R.drawable.ic_reboot).setOnMenuItemClickListener(item -> {
+        menu.add(R.string.menu_reboot).setIcon(R.drawable.ic_reboot).setOnMenuItemClickListener(item -> {
             VirtualCore.get().killAllApps();
             showRebootTips();
             return true;

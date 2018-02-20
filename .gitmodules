@@ -1,3 +1,0 @@
-[submodule "VirtualApp/launcher"]
-	path = VirtualApp/launcher
-	url = git@github.com:android-hacker/Launcher3.git

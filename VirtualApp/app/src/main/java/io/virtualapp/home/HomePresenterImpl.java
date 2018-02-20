@@ -2,7 +2,6 @@ package io.virtualapp.home;
 
 import android.app.Activity;
 import android.content.pm.PackageInfo;
-import android.os.SystemClock;
 import android.widget.Toast;
 
 import com.lody.virtual.client.core.VirtualCore;
