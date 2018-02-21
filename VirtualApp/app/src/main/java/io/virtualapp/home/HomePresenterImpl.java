@@ -9,7 +9,11 @@ import com.lody.virtual.os.VUserInfo;
 import com.lody.virtual.os.VUserManager;
 import com.lody.virtual.remote.InstallResult;
 import com.lody.virtual.remote.InstalledAppInfo;
+import com.lody.virtual.server.pm.PackageCacheManager;
+import com.lody.virtual.server.pm.parser.PackageParserEx;
+import com.lody.virtual.server.pm.parser.VPackage;
 
+import java.io.File;
 import java.io.IOException;
 
 import io.virtualapp.R;
@@ -91,7 +95,18 @@ class HomePresenterImpl implements HomeContract.HomePresenter {
             InstalledAppInfo installedAppInfo = VirtualCore.get().getInstalledAppInfo(info.packageName, 0);
             addResult.justEnableHidden = installedAppInfo != null;
             addResult.addedToLaucher = false;
-            if (addResult.justEnableHidden) {
+
+            VPackage oldPackage = null, newPackage = null;
+            try {
+                if (addResult.justEnableHidden) {
+                    newPackage = PackageParserEx.parsePackage(new File(info.path));
+                    oldPackage = PackageParserEx.parsePackage(new File(installedAppInfo.apkPath));
+                }
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+            if (addResult.justEnableHidden && (oldPackage == null || newPackage == null ||
+                    oldPackage.mVersionCode >= newPackage.mVersionCode)) {
                 int[] userIds = installedAppInfo.getInstalledUsers();
                 int nextUserId = userIds.length;
                 /*
@@ -126,7 +141,7 @@ class HomePresenterImpl implements HomeContract.HomePresenter {
                     pkgInfo.applicationInfo.publicSourceDir = info.path;
                 } catch (Exception e) {
                 }
-                if(pkgInfo != null) {
+                if (pkgInfo != null) {
                     PackageAppData data = PackageAppDataStorage.get().acquire(pkgInfo.applicationInfo);
                     addResult.appData = data;
                     data.isInstalling = true;

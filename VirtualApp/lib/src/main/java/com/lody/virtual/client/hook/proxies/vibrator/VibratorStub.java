@@ -25,7 +25,13 @@ public class VibratorStub extends BinderInvocationProxy {
         addMethodProxy(new VibrateMethodProxy("vibrateMagnitude"));
         addMethodProxy(new VibrateMethodProxy("vibratePatternMagnitude"));
         // }
-        addMethodProxy(new VibrateMethodProxy("vibrate"));
+        // 傻逼微信
+        addMethodProxy(new ReplaceCallingPkgMethodProxy("vibrate") {
+            @Override
+            public Object call(Object who, Method method, Object... args) throws Throwable {
+                return null;
+            }
+        });
         addMethodProxy(new VibrateMethodProxy("vibratePattern"));
         // 傻逼微信
         addMethodProxy(new ReplaceCallingPkgMethodProxy("cancelVibrate") {
