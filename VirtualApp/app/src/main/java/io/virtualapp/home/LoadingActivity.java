@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.os.RemoteException;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.lody.virtual.client.core.VirtualCore;
 import com.lody.virtual.client.ipc.VActivityManager;
@@ -51,12 +52,19 @@ public class LoadingActivity extends VActivity {
         int userId = getIntent().getIntExtra(KEY_USER, -1);
         String pkg = getIntent().getStringExtra(PKG_NAME_ARGUMENT);
         appModel = PackageAppDataStorage.get().acquire(pkg);
-        ImageView iconView = findViewById(R.id.app_icon);
+        if (appModel == null) {
+            Toast.makeText(getApplicationContext(), "Open App:" + pkg + " failed.", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        ImageView iconView = (ImageView) findViewById(R.id.app_icon);
         iconView.setImageDrawable(appModel.icon);
         TextView nameView = findViewById(R.id.app_name);
         nameView.setText(String.format(Locale.ENGLISH, "Opening %s...", appModel.name));
         Intent intent = getIntent().getParcelableExtra(KEY_INTENT);
         if (intent == null) {
+            finish();
             return;
         }
         VirtualCore.get().setUiCallback(intent, mUiCallback);
@@ -77,6 +85,19 @@ public class LoadingActivity extends VActivity {
 
         @Override
         public void onAppOpened(String packageName, int userId) throws RemoteException {
+            finish();
+        }
+
+        @Override
+        public void onOpenFailed(String packageName, int userId) throws RemoteException {
+            VUiKit.defer().when(() -> {
+            }).done((v) -> {
+                if (!isFinishing()) {
+                    Toast.makeText(getApplicationContext(), getResources().getString(R.string.start_app_failed, packageName),
+                            Toast.LENGTH_SHORT).show();
+                }
+            });
+
             finish();
         }
     };

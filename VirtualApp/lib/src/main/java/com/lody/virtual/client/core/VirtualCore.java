@@ -24,9 +24,12 @@ import android.graphics.drawable.Icon;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.ConditionVariable;
+import android.os.IBinder;
 import android.os.Looper;
 import android.os.Process;
 import android.os.RemoteException;
+import android.text.TextUtils;
+import android.widget.Toast;
 
 import com.lody.virtual.R;
 import com.lody.virtual.client.VClientImpl;
@@ -522,7 +525,11 @@ public final class VirtualCore {
         addIntent.putExtra(Intent.EXTRA_SHORTCUT_NAME, name);
         addIntent.putExtra(Intent.EXTRA_SHORTCUT_ICON, icon);
         addIntent.setAction("com.android.launcher.action.INSTALL_SHORTCUT");
-        context.sendBroadcast(addIntent);
+        try {
+            context.sendBroadcast(addIntent);
+        } catch (Throwable ignored) {
+            return false;
+        }
         return true;
     }
 
@@ -559,8 +566,7 @@ public final class VirtualCore {
                 shortcutManager.removeDynamicShortcuts(Collections.singletonList(remove.getId()));
             }
 
-            dynamicShortcuts.add(likeShortcut);
-            shortcutManager.addDynamicShortcuts(dynamicShortcuts);
+            shortcutManager.addDynamicShortcuts(Collections.singletonList(likeShortcut));
             return true;
         } catch (Throwable e) {
             return false;
@@ -584,11 +590,23 @@ public final class VirtualCore {
             // new Intent(context, MyReceiver.class), PendingIntent.FLAG_UPDATE_CURRENT);
 
             try {
-                shortcutManager.requestPinShortcut(info, null);
-            } catch (Exception e) {
+                List<ShortcutInfo> pinnedShortcuts = shortcutManager.getPinnedShortcuts();
+                boolean exists = false;
+                for (ShortcutInfo pinnedShortcut : pinnedShortcuts) {
+                    if (TextUtils.equals(pinnedShortcut.getId(), info.getId())) {
+                        // already exist.
+                        exists = true;
+                        Toast.makeText(context, R.string.create_shortcut_already_exist, Toast.LENGTH_SHORT).show();
+                        break;
+                    }
+                }
+                if (!exists) {
+                    shortcutManager.requestPinShortcut(info, null);
+                }
+                return true;
+            } catch(Exception e) {
                 return false;
             }
-            return true;
         }
         return false;
     }
@@ -644,6 +662,25 @@ public final class VirtualCore {
             BundleCompat.putBinder(bundle, "_VA_|_ui_callback_", callback.asBinder());
             intent.putExtra("_VA_|_sender_", bundle);
         }
+    }
+
+    public static IUiCallback getUiCallback(Intent intent) {
+        if (intent == null) {
+            return null;
+        }
+        // only for launch intent.
+        if (!Intent.ACTION_MAIN.equals(intent.getAction())) {
+            return null;
+        }
+        try {
+            Bundle bundle = intent.getBundleExtra("_VA_|_sender_");
+            if (bundle != null) {
+                IBinder uicallbackToken = BundleCompat.getBinder(bundle, "_VA_|_ui_callback_");
+                return IUiCallback.Stub.asInterface(uicallbackToken);
+            }
+        } catch (Throwable ignored) {
+        }
+        return null;
     }
 
     public InstalledAppInfo getInstalledAppInfo(String pkg, int flags) {

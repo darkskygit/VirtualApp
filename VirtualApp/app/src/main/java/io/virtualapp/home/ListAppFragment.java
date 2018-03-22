@@ -3,11 +3,12 @@ package io.virtualapp.home;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageInfo;
 import android.database.Cursor;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.OrientationHelper;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.LayoutInflater;
@@ -24,13 +25,11 @@ import java.util.Locale;
 
 import io.virtualapp.R;
 import io.virtualapp.VApp;
-import io.virtualapp.VCommends;
 import io.virtualapp.abs.ui.VFragment;
-import io.virtualapp.abs.ui.VUiKit;
 import io.virtualapp.home.adapters.CloneAppListAdapter;
-import io.virtualapp.home.adapters.decorations.ItemOffsetDecoration;
 import io.virtualapp.home.models.AppInfo;
 import io.virtualapp.home.models.AppInfoLite;
+import io.virtualapp.sys.Installd;
 import io.virtualapp.widgets.DragSelectRecyclerView;
 
 
@@ -85,8 +84,10 @@ public class ListAppFragment extends VFragment<ListAppContract.ListAppPresenter>
         mProgressBar = (ProgressBar) view.findViewById(R.id.select_app_progress_bar);
         mInstallButton = (Button) view.findViewById(R.id.select_app_install_btn);
         mSelectFromExternal = view.findViewById(R.id.select_app_from_external);
-        mRecyclerView.setLayoutManager(new StaggeredGridLayoutManager(3, OrientationHelper.VERTICAL));
-        mRecyclerView.addItemDecoration(new ItemOffsetDecoration(VUiKit.dpToPx(getContext(), 2)));
+        mRecyclerView.setLayoutManager(new StaggeredGridLayoutManager(1, OrientationHelper.VERTICAL));
+        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL);
+        dividerItemDecoration.setDrawable(new ColorDrawable(0x1f000000));
+        mRecyclerView.addItemDecoration(dividerItemDecoration);
         mAdapter = new CloneAppListAdapter(getActivity());
         mRecyclerView.setAdapter(mAdapter);
         mAdapter.setOnItemClickListener(new CloneAppListAdapter.ItemEventListener() {
@@ -116,11 +117,10 @@ public class ListAppFragment extends VFragment<ListAppContract.ListAppPresenter>
             ArrayList<AppInfoLite> dataList = new ArrayList<AppInfoLite>(selectedIndices.length);
             for (int index : selectedIndices) {
                 AppInfo info = mAdapter.getItem(index);
-                dataList.add(new AppInfoLite(info.packageName, info.path, info.fastOpen));
+                dataList.add(new AppInfoLite(info.packageName, info.path, info.fastOpen, info.disableMultiVersion));
             }
-            Intent data = new Intent();
-            data.putParcelableArrayListExtra(VCommends.EXTRA_APP_INFO_LIST, dataList);
-            getActivity().setResult(Activity.RESULT_OK, data);
+
+            Installd.startInstallerActivity(getActivity(), dataList);
             getActivity().finish();
         });
         mSelectFromExternal.setOnClickListener(v -> {
@@ -168,25 +168,8 @@ public class ListAppFragment extends VFragment<ListAppContract.ListAppPresenter>
         if (path == null) {
             return;
         }
+        Installd.handleRequestFromFile(getActivity(), path);
 
-        PackageInfo pkgInfo = null;
-        try {
-            pkgInfo = getActivity().getPackageManager().getPackageArchiveInfo(path, 0);
-            pkgInfo.applicationInfo.sourceDir = path;
-            pkgInfo.applicationInfo.publicSourceDir = path;
-        } catch (Exception e) {
-            // Ignore
-        }
-        if (pkgInfo == null) {
-            return;
-        }
-
-        AppInfoLite appInfoLite = new AppInfoLite(pkgInfo.packageName, path, false);
-        ArrayList<AppInfoLite> dataList = new ArrayList<>();
-        dataList.add(appInfoLite);
-        Intent intent = new Intent();
-        intent.putParcelableArrayListExtra(VCommends.EXTRA_APP_INFO_LIST, dataList);
-        getActivity().setResult(Activity.RESULT_OK, intent);
         getActivity().finish();
     }
 

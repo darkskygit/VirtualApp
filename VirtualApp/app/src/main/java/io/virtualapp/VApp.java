@@ -1,22 +1,24 @@
 package io.virtualapp;
 
+import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Looper;
-import android.support.multidex.MultiDexApplication;
+import android.os.Build;
 import android.util.Log;
 
+import com.lody.virtual.client.NativeEngine;
 import com.lody.virtual.client.core.VirtualCore;
 import com.lody.virtual.client.stub.VASettings;
 
 import io.virtualapp.delegate.MyComponentDelegate;
+import io.virtualapp.delegate.MyCrashHandler;
 import io.virtualapp.delegate.MyPhoneInfoDelegate;
 import jonathanfinerty.once.Once;
 
 /**
  * @author Lody
  */
-public class VApp extends MultiDexApplication {
+public class VApp extends Application {
 
     private static final String TAG = "VApp";
 
@@ -32,6 +34,9 @@ public class VApp extends MultiDexApplication {
     @Override
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            NativeEngine.disableJit();
+        }
         mPreferences = base.getSharedPreferences("va", Context.MODE_MULTI_PROCESS);
         VASettings.ENABLE_IO_REDIRECT = true;
         VASettings.ENABLE_INNER_SHORTCUT = false;
@@ -62,14 +67,7 @@ public class VApp extends MultiDexApplication {
                 virtualCore.setPhoneInfoDelegate(new MyPhoneInfoDelegate());
                 //fake task description's icon and title
                 //virtualCore.setTaskDescriptionDelegate(new MyTaskDescriptionDelegate());
-                virtualCore.setCrashHandler((t, e) -> {
-                    Log.i(TAG, "uncaught :" + t, e);
-                    if (t == Looper.getMainLooper().getThread()) {
-                        System.exit(0);
-                    } else {
-                        Log.e(TAG, "ignore uncaught exception of thread: " + t);
-                    }
-                });
+                virtualCore.setCrashHandler(new MyCrashHandler());
             }
 
             @Override

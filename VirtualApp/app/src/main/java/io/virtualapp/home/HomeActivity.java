@@ -277,6 +277,7 @@ public class HomeActivity extends VActivity implements HomeContract.HomeView {
                 }
                 mLaunchpadAdapter.notifyItemChanged(pos);
                 mPresenter.launchApp(data);
+                finish();
             }
         });
     }

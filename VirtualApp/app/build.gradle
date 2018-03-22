@@ -7,9 +7,9 @@ android {
         applicationId "io.virtualapp"
         minSdkVersion 26
         targetSdkVersion 27
-        versionCode 68
-        versionName "0.6.8"
-        multiDexEnabled true
+        versionCode 82
+        versionName "0.8.2"
+        multiDexEnabled false
         android {
             defaultConfig {
                 ndk {
