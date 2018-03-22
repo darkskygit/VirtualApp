@@ -1082,6 +1082,40 @@ class MethodProxies {
     }
 
 
+    static class CheckCallingOrSelfPermission extends MethodProxy {
+
+        @Override
+        public String getMethodName() {
+            return "checkCallingOrSelfPermission";
+        }
+
+        @Override
+        public Object call(Object who, Method method, Object... args) throws Throwable {
+            String permission = (String) args[0];
+            if (SpecialComponentList.isWhitePermission(permission)) {
+                return PackageManager.PERMISSION_GRANTED;
+            }
+            if (permission.startsWith("com.google")) {
+                return PackageManager.PERMISSION_GRANTED;
+            }
+            if (permission.equals(Manifest.permission.READ_PHONE_STATE) ||
+                    permission.equals(Manifest.permission.ACCESS_COARSE_LOCATION) ||
+                    permission.equals(Manifest.permission.RECORD_AUDIO) ||
+                    permission.equals(Manifest.permission.CAMERA) ||
+                    permission.equals(Manifest.permission.READ_EXTERNAL_STORAGE) ||
+                    permission.equals(Manifest.permission.WRITE_EXTERNAL_STORAGE) ||
+                    permission.equals(Manifest.permission.WRITE_SETTINGS))
+                return PackageManager.PERMISSION_GRANTED;
+            return method.invoke(who, args);
+        }
+
+        @Override
+        public boolean isEnable() {
+            return isAppProcess();
+        }
+
+    }
+
     static class CheckPermission extends MethodProxy {
 
         @Override
@@ -1103,7 +1137,8 @@ class MethodProxies {
                     permission.equals(Manifest.permission.RECORD_AUDIO) ||
                     permission.equals(Manifest.permission.CAMERA) ||
                     permission.equals(Manifest.permission.READ_EXTERNAL_STORAGE) ||
-                    permission.equals(Manifest.permission.WRITE_EXTERNAL_STORAGE))
+                    permission.equals(Manifest.permission.WRITE_EXTERNAL_STORAGE) ||
+                    permission.equals(Manifest.permission.WRITE_SETTINGS))
                 return PackageManager.PERMISSION_GRANTED;
             args[args.length - 1] = getRealUid();
             return method.invoke(who, args);
