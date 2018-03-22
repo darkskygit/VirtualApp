@@ -444,7 +444,7 @@ bool compileNothing(void* thiz, void* thread, void* method, bool osr) { return f
 bool (*orig_CompileNothing)(void* thiz, void* thread, void* method, bool osr);
 
 void disableJit() {
-#ifdef __arm__
+#if 0//#ifdef __arm__
     void *libart = fake_dlopen("/system/lib/libart.so", RTLD_NOW);
     if (libart) {
         // disable profile.
