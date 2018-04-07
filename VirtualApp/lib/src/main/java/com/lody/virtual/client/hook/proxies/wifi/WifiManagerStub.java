@@ -21,6 +21,7 @@ import com.lody.virtual.helper.utils.ArrayUtils;
 import com.lody.virtual.helper.utils.Reflect;
 import com.lody.virtual.helper.utils.marks.FakeDeviceMark;
 import com.lody.virtual.helper.utils.marks.FakeLocMark;
+import com.lody.virtual.os.VUserHandle;
 import com.lody.virtual.remote.vloc.VWifi;
 
 import java.lang.reflect.Method;
@@ -143,7 +144,7 @@ public class WifiManagerStub extends BinderInvocationProxy {
                 return createWifiInfo();
             }
             if (wifiInfo != null) {
-                mirror.android.net.wifi.WifiInfo.mMacAddress.set(wifiInfo, getDeviceInfo().wifiMac);
+                mirror.android.net.wifi.WifiInfo.mMacAddress.set(wifiInfo, getDeviceInfo(VUserHandle.myAppId()).wifiMac);
             }
             return wifiInfo;
         }

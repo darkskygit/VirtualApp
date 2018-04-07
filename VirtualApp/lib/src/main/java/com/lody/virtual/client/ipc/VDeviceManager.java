@@ -39,9 +39,9 @@ public class VDeviceManager {
         return IDeviceInfoManager.Stub.asInterface(binder);
     }
 
-    public VDeviceInfo getDeviceInfo(int userId) {
+    public VDeviceInfo getDeviceInfo(int userId, int AppId) {
         try {
-            return getRemote().getDeviceInfo(userId);
+            return getRemote().getDeviceInfo(userId, AppId);
         } catch (RemoteException e) {
             return VirtualRuntime.crash(e);
         }

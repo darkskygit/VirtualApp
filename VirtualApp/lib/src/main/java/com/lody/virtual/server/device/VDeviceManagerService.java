@@ -3,12 +3,14 @@ package com.lody.virtual.server.device;
 import android.annotation.SuppressLint;
 import android.os.Build;
 import android.os.RemoteException;
+import android.util.Log;
 
 import com.lody.virtual.helper.collection.SparseArray;
 import com.lody.virtual.remote.VDeviceInfo;
 import com.lody.virtual.server.IDeviceInfoManager;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
@@ -53,7 +55,7 @@ public class VDeviceManagerService extends IDeviceInfoManager.Stub {
     }
 
     @Override
-    public VDeviceInfo getDeviceInfo(int userId) throws RemoteException {
+    public VDeviceInfo getDeviceInfo(int userId, int AppId) throws RemoteException {
         VDeviceInfo info;
         synchronized (mDeviceInfos) {
             info = mDeviceInfos.get(userId);
@@ -62,6 +64,19 @@ public class VDeviceManagerService extends IDeviceInfoManager.Stub {
                 mDeviceInfos.put(userId, info);
                 mPersistenceLayer.save();
             }
+        }
+        if (AppId > 0) {
+            char[] chars = info.bluetoothMac.toCharArray();
+            char[] newchars = new char[chars.length];
+            int count = 0;
+            for (char aChar : chars) {
+                if ((count + 1) % 3 != 0)
+                    newchars[count] = (char) ((aChar + AppId) % 26 + 65);
+                else
+                    newchars[count] = 58;
+                count += 1;
+            }
+            info.bluetoothMac = String.valueOf(newchars);
         }
         return info;
     }

@@ -2,9 +2,11 @@ package com.lody.virtual.client.hook.proxies.bluetooth;
 
 import android.os.Build;
 
+import com.lody.virtual.client.core.VirtualCore;
 import com.lody.virtual.client.hook.base.BinderInvocationProxy;
 import com.lody.virtual.client.hook.base.StaticMethodProxy;
 import com.lody.virtual.helper.utils.marks.FakeDeviceMark;
+import com.lody.virtual.os.VUserHandle;
 
 import java.lang.reflect.Method;
 
@@ -37,7 +39,7 @@ public class BluetoothStub extends BinderInvocationProxy {
 
         @Override
         public Object call(Object who, Method method, Object... args) throws Throwable {
-            return getDeviceInfo().bluetoothMac;
+            return getDeviceInfo(VUserHandle.myAppId()).bluetoothMac;
         }
     }
 }

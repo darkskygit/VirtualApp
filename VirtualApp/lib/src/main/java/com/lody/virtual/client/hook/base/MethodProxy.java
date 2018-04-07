@@ -3,6 +3,7 @@ package com.lody.virtual.client.hook.base;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.util.Log;
 
 import com.lody.virtual.client.VClientImpl;
 import com.lody.virtual.client.core.VirtualCore;
@@ -68,8 +69,8 @@ public abstract class MethodProxy {
         return VirtualCore.get().myUid();
     }
 
-    protected static VDeviceInfo getDeviceInfo() {
-        return VClientImpl.get().getDeviceInfo();
+    protected static VDeviceInfo getDeviceInfo(int AppId) {
+        return VClientImpl.get().getDeviceInfo(AppId);
     }
 
     protected static boolean isFakeLocationEnable() {

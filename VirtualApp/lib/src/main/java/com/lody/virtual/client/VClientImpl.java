@@ -117,11 +117,11 @@ public final class VClientImpl extends IVClient.Stub {
         return mBoundApplication != null;
     }
 
-    public VDeviceInfo getDeviceInfo() {
+    public VDeviceInfo getDeviceInfo(int AppId) {
         if (deviceInfo == null) {
             synchronized (this) {
                 if (deviceInfo == null) {
-                    deviceInfo = VDeviceManager.get().getDeviceInfo(getUserId(vuid));
+                    deviceInfo = VDeviceManager.get().getDeviceInfo(getUserId(vuid), AppId);
                 }
             }
         }
@@ -228,7 +228,7 @@ public final class VClientImpl extends IVClient.Stub {
     }
 
     private void bindApplicationNoCheck(String packageName, String processName, ConditionVariable lock) {
-        VDeviceInfo deviceInfo = getDeviceInfo();
+        VDeviceInfo deviceInfo = getDeviceInfo(VUserHandle.myAppId());
         if (processName == null) {
             processName = packageName;
         }

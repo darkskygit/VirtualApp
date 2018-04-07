@@ -5,6 +5,7 @@ import android.os.Bundle;
 
 import com.lody.virtual.client.VClientImpl;
 import com.lody.virtual.client.hook.base.MethodBox;
+import com.lody.virtual.os.VUserHandle;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -61,7 +62,7 @@ public class SettingsProviderHook extends ExternalProviderHook {
                 return wrapBundle(arg, presetValue);
             }
             if ("android_id".equals(arg)) {
-                return wrapBundle("android_id", VClientImpl.get().getDeviceInfo().androidId);
+                return wrapBundle("android_id", VClientImpl.get().getDeviceInfo(VUserHandle.myAppId()).androidId);
             }
         }
         if (METHOD_PUT == methodType) {

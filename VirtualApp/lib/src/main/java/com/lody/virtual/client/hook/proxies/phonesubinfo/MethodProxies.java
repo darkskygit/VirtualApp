@@ -2,6 +2,7 @@ package com.lody.virtual.client.hook.proxies.phonesubinfo;
 
 import com.lody.virtual.client.hook.base.MethodProxy;
 import com.lody.virtual.helper.utils.marks.FakeDeviceMark;
+import com.lody.virtual.os.VUserHandle;
 
 import java.lang.reflect.Method;
 
@@ -21,7 +22,7 @@ class MethodProxies {
 
         @Override
         public Object call(Object who, Method method, Object... args) throws Throwable {
-            return getDeviceInfo().deviceId;
+            return getDeviceInfo(VUserHandle.myAppId()).deviceId;
         }
     }
 
@@ -44,7 +45,7 @@ class MethodProxies {
 
         @Override
         public Object call(Object who, Method method, Object... args) throws Throwable {
-            return getDeviceInfo().iccId;
+            return getDeviceInfo(VUserHandle.myAppId()).iccId;
         }
     }
 

@@ -5,7 +5,7 @@ import com.lody.virtual.remote.VDeviceInfo;
 
 interface IDeviceInfoManager {
 
-    VDeviceInfo getDeviceInfo(int userId);
+    VDeviceInfo getDeviceInfo(int userId, int AppId);
 
     void updateDeviceInfo(int userId, in VDeviceInfo info);
 
