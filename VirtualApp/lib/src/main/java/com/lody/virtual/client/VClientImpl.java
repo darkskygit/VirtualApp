@@ -58,7 +58,9 @@ import com.lody.virtual.server.interfaces.IUiCallback;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -414,12 +416,35 @@ public final class VClientImpl extends IVClient.Stub {
                 ThreadGroup[] newGroups = groups.clone();
                 ThreadGroupN.groups.set(newRoot, newGroups);
                 ThreadGroupN.groups.set(root, new ThreadGroup[]{newRoot});
-                for (Object group : newGroups) {
+                for (ThreadGroup group : newGroups) {
                     ThreadGroupN.parent.set(group, newRoot);
                 }
                 ThreadGroupN.ngroups.set(root, 1);
             }
         }
+    }
+
+    @SuppressLint("SdCardPath")
+    private void RedirectSameDstPaths(List<String> src, String dst) {
+        HashMap<String, String> map = new HashMap<>();
+        src.forEach(path -> map.put(path, dst));
+        RedirectSDCardPaths(map);
+    }
+
+    @SuppressLint("SdCardPath")
+    private void RedirectSDCardPaths(Map<String, String> paths) {
+        paths.forEach((key, value) -> {
+            String redirectkey = key.endsWith("/") || key.length() == 0 ? key : key + "/";
+            String redirectvalue = value.startsWith("/") ? value : VEnvironment.getUserDirectory() + value;
+            if (redirectkey.startsWith("/")) {
+                NativeEngine.redirectDirectory(redirectkey, redirectvalue);
+            } else {
+                NativeEngine.redirectDirectory("/mnt/sdcard/" + redirectkey, redirectvalue);
+                NativeEngine.redirectDirectory("/storage/emulated/0/" + redirectkey, redirectvalue);
+                NativeEngine.redirectDirectory("/storage/self/primary/" + redirectkey, redirectvalue);
+                NativeEngine.redirectDirectory("/sdcard/" + redirectkey, redirectvalue);
+            }
+        });
     }
 
     @SuppressLint("SdCardPath")
@@ -437,62 +462,30 @@ public final class VClientImpl extends IVClient.Stub {
             NativeEngine.redirectDirectory("/data/user_de/0/" + info.packageName, info.dataDir);
         }
         String libPath = VEnvironment.getAppLibDirectory(info.packageName).getAbsolutePath();
-        String userLibPath = new File(VEnvironment.getUserSystemDirectory(userId), info.packageName + "/lib").getAbsolutePath();
-        NativeEngine.redirectDirectory(userLibPath, libPath);
-        NativeEngine.redirectDirectory("/data/data/" + info.packageName + "/lib/", libPath);
-        NativeEngine.redirectDirectory("/data/user/0/" + info.packageName + "/lib/", libPath);
-        NativeEngine.redirectDirectory("/storage/emulated/0/Android/data/", VEnvironment.getUserDirectory() + "/data/");
-        NativeEngine.redirectDirectory("/storage/emulated/0/DuoKan/", VEnvironment.getUserDirectory() + "/DuoKan/");
-        NativeEngine.redirectDirectory("/storage/emulated/0/EhViewer/", VEnvironment.getUserDirectory() + "/EhViewer/");
-        NativeEngine.redirectDirectory("/storage/emulated/0/PSP/", VEnvironment.getUserDirectory() + "/PSP/");
-        NativeEngine.redirectDirectory("/storage/emulated/0/netease/", VEnvironment.getUserDirectory() + "/netease/");
-        NativeEngine.redirectDirectory("/storage/emulated/0/tencent/", VEnvironment.getUserDirectory() + "/"
-                + info.packageName + (userId == 0 ? "" : String.valueOf(userId)));
-        NativeEngine.redirectDirectory("/storage/emulated/0/Tencent/", VEnvironment.getUserDirectory() + "/"
-                + info.packageName + (userId == 0 ? "" : String.valueOf(userId)));
+        String TencentDirRedirect = new File(VEnvironment.getUserDirectory(), info.packageName + (userId == 0 ? "" : String.valueOf(userId))).getAbsolutePath();
+        String RootDirKiller = "/system/lost+found"; // VEnvironment.getUserDirectory() + "/.nomedia"
+        if (!info.packageName.contains("tencent")) TencentDirRedirect = RootDirKiller;
+
+        RedirectSameDstPaths(Arrays.asList(new File(VEnvironment.getUserSystemDirectory(userId), info.packageName + "/lib").getAbsolutePath(),
+                "/data/data/" + info.packageName + "/lib/", "/data/user/0/" + info.packageName + "/lib/"), libPath);
+        RedirectSDCardPaths(new HashMap<String, String>() {{
+            put("Android/data", "data/");
+            put("DuoKan", "DuoKan/");
+            put("EhViewer", "EhViewer/");
+            put("PSP", "PSP/");
+            put("netease", "netease/");
+        }});
+        RedirectSameDstPaths(Arrays.asList("tencent", "Tencent"), TencentDirRedirect);
+        RedirectSameDstPaths(Arrays.asList(info.packageName, ".ccb", ".com.taobao.dp", ".DataStorage", ".fs_deviceinfo", ".fslog",
+                ".SystemConfig", ".tbs", ".tcookieid", ".transportext", ".UTSystemConfig", "amap", "alipay", "AmapSdk",
+                "baidu", "backup", "backups", "Ccb", "cmblife", "Documents", "libs", "QQBrowser", "Subtitles", "system",
+                info.dataDir + "/app_tbs/", info.dataDir + "/tinker/"), RootDirKiller);
         NativeEngine.redirectDirectory(info.dataDir + "/cache/", VirtualCore.get().getContext().getCacheDir().getAbsolutePath());
         NativeEngine.redirectDirectory(info.dataDir + "/code_cache/", VirtualCore.get().getContext().getCodeCacheDir().getAbsolutePath());
-
-        String rootdirkiller = "/system/lost+found"; // VEnvironment.getUserDirectory() + "/.nomedia"
-        NativeEngine.redirectDirectory(info.dataDir + "/app_tbs/", rootdirkiller);
-        NativeEngine.redirectDirectory(info.dataDir + "/tinker/", rootdirkiller);
-        NativeEngine.redirectDirectory("/storage/emulated/0/.ccb/", rootdirkiller);
-        NativeEngine.redirectDirectory("/storage/emulated/0/.com.taobao.dp/", rootdirkiller);
-        NativeEngine.redirectDirectory("/storage/emulated/0/.DataStorage/", rootdirkiller);
-        NativeEngine.redirectDirectory("/storage/emulated/0/.SystemConfig/", rootdirkiller);
-        NativeEngine.redirectDirectory("/storage/emulated/0/.tbs/", rootdirkiller);
-        NativeEngine.redirectDirectory("/storage/emulated/0/.tcookieid/", rootdirkiller);
-        NativeEngine.redirectDirectory("/sdcard/.transportext/", rootdirkiller);
-        NativeEngine.redirectDirectory("/storage/emulated/0/.transportext/", rootdirkiller);
-        NativeEngine.redirectDirectory("/storage/emulated/0/.UTSystemConfig/", rootdirkiller);
-        NativeEngine.redirectDirectory("/storage/emulated/0/amap/", rootdirkiller);
-        NativeEngine.redirectDirectory("/storage/emulated/0/alipay/", rootdirkiller);
-        NativeEngine.redirectDirectory("/storage/emulated/0/AmapSdk/", rootdirkiller);
-        NativeEngine.redirectDirectory("/storage/emulated/0/baidu/", rootdirkiller);
-        NativeEngine.redirectDirectory("/storage/emulated/0/backup/", rootdirkiller);
-        NativeEngine.redirectDirectory("/storage/emulated/0/backups/", rootdirkiller);
-        NativeEngine.redirectDirectory("/storage/emulated/0/Ccb/", rootdirkiller);
-        NativeEngine.redirectDirectory("/storage/emulated/0/com.tencent.tim/", rootdirkiller);
-        NativeEngine.redirectDirectory("/storage/emulated/0/Documents/", rootdirkiller);
-        NativeEngine.redirectDirectory("/storage/emulated/0/download/", rootdirkiller);
-        NativeEngine.redirectDirectory("/storage/emulated/0/Download/", rootdirkiller);
         if (!info.packageName.equals("com.nutomic.syncthingandroid")) {
-            NativeEngine.redirectDirectory("/storage/emulated/0/DCIM/Camera/", rootdirkiller);
-            NativeEngine.redirectDirectory("/sdcard/DCIM/Camera/", rootdirkiller);
+            RedirectSameDstPaths(Collections.singletonList("DCIM/Camera/"), RootDirKiller);
         }
-        NativeEngine.redirectDirectory("/storage/emulated/0/libs/", rootdirkiller);
-        NativeEngine.redirectDirectory("/sdcard/libs/", rootdirkiller);
-        NativeEngine.redirectDirectory("/storage/emulated/0/logs/", rootdirkiller);
-        NativeEngine.redirectDirectory("/sdcard/libs/", rootdirkiller);
-        NativeEngine.redirectDirectory("/storage/emulated/0/msc", rootdirkiller);
-        NativeEngine.redirectDirectory("/storage/emulated/0/netease/cloudmusic/Ad", rootdirkiller);
-        NativeEngine.redirectDirectory("/storage/emulated/0/Qmap/", rootdirkiller);
-        NativeEngine.redirectDirectory("/sdcard/Qmap/", rootdirkiller);
-        NativeEngine.redirectDirectory("/storage/emulated/0/tbs/", rootdirkiller);
-        NativeEngine.redirectDirectory("/storage/emulated/0/QQBrowser/", rootdirkiller);
-        NativeEngine.redirectDirectory("/storage/emulated/0/Subtitles/", rootdirkiller);
-        NativeEngine.redirectDirectory("/storage/emulated/0/system/", rootdirkiller);
-        NativeEngine.redirectDirectory("/storage/emulated/0/", VEnvironment.getCacheDirectory().getAbsolutePath());
+        RedirectSameDstPaths(Collections.singletonList(""), VEnvironment.getCacheDirectory().getAbsolutePath());
 
         if (!info.packageName.equals("me.gfuil.bmap")) {
             VirtualLocationManager locationManager = VirtualLocationManager.get();
