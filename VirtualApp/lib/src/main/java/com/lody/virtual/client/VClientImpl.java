@@ -276,7 +276,7 @@ public final class VClientImpl extends IVClient.Stub {
         if (VASettings.ENABLE_IO_REDIRECT) {
             startIOUniformer();
         }
-        NativeEngine.launchEngine();
+        NativeEngine.launchEngine(data.appInfo.packageName);
         Object mainThread = VirtualCore.mainThread();
         NativeEngine.startDexOverride();
         Context context = createPackageContext(data.appInfo.packageName);
@@ -435,7 +435,7 @@ public final class VClientImpl extends IVClient.Stub {
     private void RedirectSDCardPaths(Map<String, String> paths) {
         paths.forEach((key, value) -> {
             String redirectkey = key.endsWith("/") || key.length() == 0 ? key : key + "/";
-            String redirectvalue = value.startsWith("/") ? value : VEnvironment.getUserDirectory() + value;
+            String redirectvalue = value.startsWith("/") ? value : VEnvironment.getUserDirectory() + "/" + value;
             if (redirectkey.startsWith("/")) {
                 NativeEngine.redirectDirectory(redirectkey, redirectvalue);
             } else {
@@ -479,7 +479,7 @@ public final class VClientImpl extends IVClient.Stub {
         RedirectSameDstPaths(Arrays.asList(info.packageName, ".ccb", ".com.taobao.dp", ".DataStorage", ".fs_deviceinfo", ".fslog",
                 ".SystemConfig", ".tbs", ".tcookieid", ".transportext", ".UTSystemConfig", "Amap", "amap", "alipay", "AmapSdk",
                 "baidu", "backup", "backups", "Ccb", "cmblife", "Documents", "libs", "Qmap", "QQBrowser", "Subtitles", "system",
-                info.dataDir + "/app_tbs/", info.dataDir + "/tinker/"), RootDirKiller);
+                info.dataDir + "/app_tbs/", info.dataDir + "/files/xlog/", info.dataDir + "/tinker/"), RootDirKiller);
         NativeEngine.redirectDirectory(info.dataDir + "/cache/", VirtualCore.get().getContext().getCacheDir().getAbsolutePath());
         NativeEngine.redirectDirectory(info.dataDir + "/code_cache/", VirtualCore.get().getContext().getCodeCacheDir().getAbsolutePath());
         if (!info.packageName.equals("com.nutomic.syncthingandroid")) {

@@ -21,7 +21,7 @@ enum METHODS {
     OPEN_DEX = 0, CAMERA_SETUP, AUDIO_NATIVE_CHECK_PERMISSION
 };
 
-void hookAndroidVM(JArrayClass<jobject> javaMethods,
+void hookAndroidVM(JArrayClass<jobject> javaMethods, jstring currPackageName,
                    jstring packageName, jboolean isArt, jint apiLevel, jint cameraMethodType);
 
 void *getDvmOrArtSOHandle();

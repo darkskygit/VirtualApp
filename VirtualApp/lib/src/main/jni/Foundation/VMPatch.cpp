@@ -40,6 +40,7 @@ static struct {
 
     bool is_art;
     int native_offset;
+    char *currPackageName;
     char *host_packageName;
     jint api_level;
     jmethodID method_onGetCallingUid;
@@ -174,13 +175,16 @@ new_bridge_openDexNativeFunc(const void **args, void *pResult, const void *metho
     patchEnv.orig_openDexFile_dvm(args, pResult, method, self);
 }
 
+static jint checkCamera(jint cameraId) {
+    __android_log_print(ANDROID_LOG_WARN, "Camera", "程序 %s 尝试调用Camera %d，已%s",
+                        patchEnv.currPackageName, cameraId, cameraId ? "阻止" : "允许");
+    return cameraId != 0;
+}
+
 static jint new_native_cameraNativeSetupFunc_T1(JNIEnv *env, jobject thiz, jobject camera_this,
                                                 jint cameraId, jstring packageName) {
-
     jstring host = env->NewStringUTF(patchEnv.host_packageName);
-    if (cameraId) {
-        return -EACCES;
-    }
+    if (checkCamera(cameraId)) return -EACCES;
     return patchEnv.orig_native_cameraNativeSetupFunc.t1(env, thiz, camera_this,
                                                          cameraId,
                                                          host);
@@ -189,11 +193,8 @@ static jint new_native_cameraNativeSetupFunc_T1(JNIEnv *env, jobject thiz, jobje
 static jint new_native_cameraNativeSetupFunc_T2(JNIEnv *env, jobject thiz, jobject camera_this,
                                                 jint cameraId, jint halVersion,
                                                 jstring packageName) {
-
     jstring host = env->NewStringUTF(patchEnv.host_packageName);
-    if (cameraId) {
-        return -EACCES;
-    }
+    if (checkCamera(cameraId)) return -EACCES;
     return patchEnv.orig_native_cameraNativeSetupFunc.t2(env, thiz, camera_this, cameraId,
                                                          halVersion, host);
 }
@@ -201,11 +202,8 @@ static jint new_native_cameraNativeSetupFunc_T2(JNIEnv *env, jobject thiz, jobje
 static jint new_native_cameraNativeSetupFunc_T3(JNIEnv *env, jobject thiz, jobject camera_this,
                                                 jint cameraId, jint halVersion,
                                                 jstring packageName, jboolean option) {
-
     jstring host = env->NewStringUTF(patchEnv.host_packageName);
-    if (cameraId) {
-        return -EACCES;
-    }
+    if (checkCamera(cameraId)) return -EACCES;
     return patchEnv.orig_native_cameraNativeSetupFunc.t3(env, thiz, camera_this, cameraId,
                                                          halVersion, host, option);
 }
@@ -213,15 +211,11 @@ static jint new_native_cameraNativeSetupFunc_T3(JNIEnv *env, jobject thiz, jobje
 static jint new_native_cameraNativeSetupFunc_T4(JNIEnv *env, jobject thiz, jobject camera_this,
                                                 jint cameraId,
                                                 jstring packageName, jboolean option) {
-
     jstring host = env->NewStringUTF(patchEnv.host_packageName);
-    if (cameraId) {
-        return -EACCES;
-    }
+    if (checkCamera(cameraId)) return -EACCES;
     return patchEnv.orig_native_cameraNativeSetupFunc.t4(env, thiz, camera_this, cameraId, host,
                                                          option);
 }
-
 
 static jint
 new_native_audioRecordNativeCheckPermission(JNIEnv *env, jobject thiz, jstring _packagename) {
@@ -323,7 +317,6 @@ replaceOpenDexFileMethod(jobject javaMethod, jboolean isArt, int apiLevel) {
 
 }
 
-
 inline void
 replaceCameraNativeSetupMethod(jobject javaMethod, jboolean isArt, int apiLevel) {
 
@@ -379,7 +372,7 @@ replaceAudioRecordNativeCheckPermission(jobject javaMethod, jboolean isArt, int 
  * @param isArt Dalvik or Art
  * @param apiLevel Api level from Java
  */
-void hookAndroidVM(JArrayClass<jobject> javaMethods,
+void hookAndroidVM(JArrayClass<jobject> javaMethods, jstring currPackageName,
                    jstring packageName, jboolean isArt, jint apiLevel,
                    jint cameraMethodType) {
 
@@ -393,8 +386,8 @@ void hookAndroidVM(JArrayClass<jobject> javaMethods,
     }
     patchEnv.is_art = isArt;
     patchEnv.cameraMethodType = cameraMethodType;
-    patchEnv.host_packageName = (char *) env->GetStringUTFChars(packageName,
-                                                                NULL);
+    patchEnv.currPackageName = (char *) env->GetStringUTFChars(currPackageName, nullptr);
+    patchEnv.host_packageName = (char *) env->GetStringUTFChars(packageName, nullptr);
     patchEnv.api_level = apiLevel;
     void *soInfo = getDvmOrArtSOHandle();
     patchEnv.method_onGetCallingUid = nativeEngineClass->getStaticMethod<jint(jint)>(

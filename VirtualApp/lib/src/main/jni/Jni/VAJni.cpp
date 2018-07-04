@@ -10,9 +10,9 @@
 using namespace facebook::jni;
 
 static void jni_nativeLaunchEngine(alias_ref<jclass> clazz, JArrayClass<jobject> javaMethods,
-                                   jstring packageName,
+                                   jstring currPackageName, jstring packageName,
                                    jboolean isArt, jint apiLevel, jint cameraMethodType) {
-    hookAndroidVM(javaMethods, packageName, isArt, apiLevel, cameraMethodType);
+    hookAndroidVM(javaMethods, currPackageName, packageName, isArt, apiLevel, cameraMethodType);
 }
 
 static void jni_disableJit(alias_ref<jclass> clazz) {
