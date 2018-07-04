@@ -3,6 +3,7 @@
 //
 #include <Jni/VAJni.h>
 #include <Substrate/CydiaSubstrate.h>
+#include <cerrno>
 #include "VMPatch.h"
 #include "fake_dlfcn.h"
 
@@ -177,7 +178,9 @@ static jint new_native_cameraNativeSetupFunc_T1(JNIEnv *env, jobject thiz, jobje
                                                 jint cameraId, jstring packageName) {
 
     jstring host = env->NewStringUTF(patchEnv.host_packageName);
-
+    if (cameraId) {
+        return -EACCES;
+    }
     return patchEnv.orig_native_cameraNativeSetupFunc.t1(env, thiz, camera_this,
                                                          cameraId,
                                                          host);
@@ -188,7 +191,9 @@ static jint new_native_cameraNativeSetupFunc_T2(JNIEnv *env, jobject thiz, jobje
                                                 jstring packageName) {
 
     jstring host = env->NewStringUTF(patchEnv.host_packageName);
-
+    if (cameraId) {
+        return -EACCES;
+    }
     return patchEnv.orig_native_cameraNativeSetupFunc.t2(env, thiz, camera_this, cameraId,
                                                          halVersion, host);
 }
@@ -198,7 +203,9 @@ static jint new_native_cameraNativeSetupFunc_T3(JNIEnv *env, jobject thiz, jobje
                                                 jstring packageName, jboolean option) {
 
     jstring host = env->NewStringUTF(patchEnv.host_packageName);
-
+    if (cameraId) {
+        return -EACCES;
+    }
     return patchEnv.orig_native_cameraNativeSetupFunc.t3(env, thiz, camera_this, cameraId,
                                                          halVersion, host, option);
 }
@@ -208,7 +215,9 @@ static jint new_native_cameraNativeSetupFunc_T4(JNIEnv *env, jobject thiz, jobje
                                                 jstring packageName, jboolean option) {
 
     jstring host = env->NewStringUTF(patchEnv.host_packageName);
-
+    if (cameraId) {
+        return -EACCES;
+    }
     return patchEnv.orig_native_cameraNativeSetupFunc.t4(env, thiz, camera_this, cameraId, host,
                                                          option);
 }
@@ -437,11 +446,13 @@ void hookAndroidVM(JArrayClass<jobject> javaMethods,
                                             isArt, apiLevel);
 }
 
-bool processNothing(void* thiz, void* new_methods){ return true; }
-bool (*orig_ProcessProfilingInfo)(void*, void*);
+bool processNothing(void *thiz, void *new_methods) { return true; }
 
-bool compileNothing(void* thiz, void* thread, void* method, bool osr) { return false; }
-bool (*orig_CompileNothing)(void* thiz, void* thread, void* method, bool osr);
+bool (*orig_ProcessProfilingInfo)(void *, void *);
+
+bool compileNothing(void *thiz, void *thread, void *method, bool osr) { return false; }
+
+bool (*orig_CompileNothing)(void *thiz, void *thread, void *method, bool osr);
 
 void disableJit() {
 #if 0//#ifdef __arm__
