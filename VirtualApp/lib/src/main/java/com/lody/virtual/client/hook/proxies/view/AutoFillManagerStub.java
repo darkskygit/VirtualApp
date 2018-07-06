@@ -5,6 +5,7 @@ import android.util.Log;
 
 import com.lody.virtual.client.hook.base.BinderInvocationProxy;
 import com.lody.virtual.client.hook.base.MethodProxy;
+import com.lody.virtual.client.hook.base.ReplaceLastPkgMethodProxy;
 import com.lody.virtual.client.hook.utils.MethodParameterUtils;
 
 import java.lang.reflect.Field;
@@ -21,6 +22,7 @@ public class AutoFillManagerStub extends BinderInvocationProxy {
     private static final String TAG = "AutoFillManagerStub";
 
     private static final String AUTO_FILL_NAME = "autofill";
+
     public AutoFillManagerStub() {
         super(IAutoFillManager.Stub.asInterface, AUTO_FILL_NAME);
     }
@@ -45,39 +47,21 @@ public class AutoFillManagerStub extends BinderInvocationProxy {
             Log.e(TAG, "AutoFillManagerStub inject error.", tr);
             return;
         }
-        addMethodProxy(new MethodProxy() {
-            @Override
-            public String getMethodName() {
-                return "startSession";
-            }
-            @Override
-            public boolean beforeCall(Object who, Method method, Object... args) {
-                MethodParameterUtils.replaceLastAppPkg(args);
-                return super.beforeCall(who, method, args);
-            }
-        });
-        addMethodProxy(new MethodProxy() {
-            @Override
-            public String getMethodName() {
-                return "updateOrRestartSession";
-            }
-            @Override
-            public boolean beforeCall(Object who, Method method, Object... args) {
-                MethodParameterUtils.replaceLastAppPkg(args);
-                return super.beforeCall(who, method, args);
-            }
-        });
-        addMethodProxy(new MethodProxy() {
-            @Override
-            public String getMethodName() {
-                return "isServiceEnabled";
-            }
-            @Override
-            public boolean beforeCall(Object who, Method method, Object... args) {
-                MethodParameterUtils.replaceLastAppPkg(args);
-                return super.beforeCall(who, method, args);
-            }
-        });
+        addMethodProxy(new ReplacePkgAndComponentProxy("startSession"));
+        addMethodProxy(new ReplacePkgAndComponentProxy("updateOrRestartSession"));
+        addMethodProxy(new ReplacePkgAndComponentProxy("isServiceEnabled"));
     }
 
+    static class ReplacePkgAndComponentProxy extends ReplaceLastPkgMethodProxy {
+
+        ReplacePkgAndComponentProxy(String name) {
+            super(name);
+        }
+
+        @Override
+        public boolean beforeCall(Object who, Method method, Object... args) {
+            MethodParameterUtils.replaceLastAppComponent(args);
+            return super.beforeCall(who, method, args);
+        }
+    }
 }
