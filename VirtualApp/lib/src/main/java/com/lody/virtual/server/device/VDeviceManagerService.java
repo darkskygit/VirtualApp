@@ -2,15 +2,12 @@ package com.lody.virtual.server.device;
 
 import android.annotation.SuppressLint;
 import android.os.Build;
-import android.os.RemoteException;
-import android.util.Log;
 
 import com.lody.virtual.helper.collection.SparseArray;
 import com.lody.virtual.remote.VDeviceInfo;
 import com.lody.virtual.server.IDeviceInfoManager;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
@@ -55,7 +52,7 @@ public class VDeviceManagerService extends IDeviceInfoManager.Stub {
     }
 
     @Override
-    public VDeviceInfo getDeviceInfo(int userId, int AppId) throws RemoteException {
+    public VDeviceInfo getDeviceInfo(int userId, int AppId) {
         VDeviceInfo info;
         synchronized (mDeviceInfos) {
             info = mDeviceInfos.get(userId);
@@ -82,7 +79,7 @@ public class VDeviceManagerService extends IDeviceInfoManager.Stub {
     }
 
     @Override
-    public void updateDeviceInfo(int userId, VDeviceInfo info) throws RemoteException {
+    public void updateDeviceInfo(int userId, VDeviceInfo info) {
         synchronized (mDeviceInfos) {
             if (info != null) {
                 mDeviceInfos.put(userId, info);
@@ -121,7 +118,6 @@ public class VDeviceManagerService extends IDeviceInfoManager.Stub {
         addDeviceInfoToPool(info);
         return info;
     }
-
 
     SparseArray<VDeviceInfo> getDeviceInfos() {
         return mDeviceInfos;

@@ -5,7 +5,6 @@ import com.lody.virtual.client.hook.base.Inject;
 import com.lody.virtual.client.hook.base.ReplaceCallingPkgMethodProxy;
 import com.lody.virtual.client.hook.base.ReplaceLastPkgMethodProxy;
 import com.lody.virtual.client.hook.base.StaticMethodProxy;
-import com.lody.virtual.client.hook.utils.MethodParameterUtils;
 
 import java.lang.reflect.Method;
 

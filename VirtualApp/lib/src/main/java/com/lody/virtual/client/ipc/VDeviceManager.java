@@ -5,6 +5,7 @@ import android.os.RemoteException;
 
 import com.lody.virtual.client.core.VirtualCore;
 import com.lody.virtual.client.env.VirtualRuntime;
+import com.lody.virtual.os.VUserHandle;
 import com.lody.virtual.remote.VDeviceInfo;
 import com.lody.virtual.server.IDeviceInfoManager;
 
@@ -39,9 +40,9 @@ public class VDeviceManager {
         return IDeviceInfoManager.Stub.asInterface(binder);
     }
 
-    public VDeviceInfo getDeviceInfo(int userId, int AppId) {
+    public VDeviceInfo getDeviceInfo(int userId) {
         try {
-            return getRemote().getDeviceInfo(userId, AppId);
+            return getRemote().getDeviceInfo(userId, VUserHandle.myAppId());
         } catch (RemoteException e) {
             return VirtualRuntime.crash(e);
         }

@@ -22,7 +22,6 @@ import com.lody.virtual.client.core.VirtualCore;
 import com.lody.virtual.client.fixer.ComponentFixer;
 import com.lody.virtual.client.stub.VASettings;
 import com.lody.virtual.helper.compat.ObjectsCompat;
-import com.lody.virtual.os.VBinder;
 import com.lody.virtual.os.VUserHandle;
 import com.lody.virtual.remote.VParceledListSlice;
 import com.lody.virtual.server.IPackageInstaller;
@@ -609,20 +608,6 @@ public class VPackageManagerService extends IPackageManager.Stub {
     @Override
     public VParceledListSlice<PackageInfo> getInstalledPackages(int flags, int userId) {
         checkUserId(userId);
-        VPackage xposed = mPackages.get("de.robv.android.xposed.installer");
-        if (xposed != null && ((PackageSetting)xposed.mExtras).appId == VUserHandle.getAppId(VBinder.getCallingUid())) {
-            ArrayList<PackageInfo> pkgList = new ArrayList<>(mPackages.size());
-            synchronized (mPackages) {
-                for (VPackage p : mPackages.values()) {
-                    PackageSetting ps = (PackageSetting) p.mExtras;
-                    PackageInfo info = generatePackageInfo(p, ps, flags, userId);
-                    if (info != null) {
-                        pkgList.add(info);
-                    }
-                }
-            }
-            return new VParceledListSlice<>(pkgList);
-        }
         return new VParceledListSlice<>(new ArrayList<PackageInfo>(0));
     }
 

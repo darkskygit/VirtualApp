@@ -58,6 +58,7 @@ import com.lody.virtual.helper.utils.ArrayUtils;
 import com.lody.virtual.helper.utils.BitmapUtils;
 import com.lody.virtual.helper.utils.ComponentUtils;
 import com.lody.virtual.helper.utils.DrawableUtils;
+import com.lody.virtual.helper.utils.EncodeUtils;
 import com.lody.virtual.helper.utils.FileUtils;
 import com.lody.virtual.helper.utils.Reflect;
 import com.lody.virtual.helper.utils.VLog;
@@ -359,6 +360,25 @@ class MethodProxies {
 
     }
 
+
+    static class OverridePendingTransition extends MethodProxy {
+
+        @Override
+        public String getMethodName() {
+            return "overridePendingTransition";
+        }
+
+        @Override
+        public Object call(Object who, Method method, Object... args) throws Throwable {
+            String packageName = (String) args[1];
+            if (Constants.WECHAT_PACKAGE.equals(packageName)) {
+                // 解决微信界面跳转狂闪的问题
+                return null;
+            } else {
+                return super.call(who, method, args);
+            }
+        }
+    }
 
     static class StartActivity extends MethodProxy {
 
@@ -887,6 +907,9 @@ class MethodProxies {
             service.setDataAndType(service.getData(), resolvedType);
             ServiceInfo serviceInfo = VirtualCore.get().resolveServiceInfo(service, VUserHandle.myUserId());
             if (serviceInfo != null) {
+                if (isFiltered(service)) {
+                    return service.getComponent();
+                }
                 return VActivityManager.get().startService(appThread, service, resolvedType, userId);
             }
             return method.invoke(who, args);
@@ -895,6 +918,13 @@ class MethodProxies {
         @Override
         public boolean isEnable() {
             return isAppProcess() || isServerProcess();
+        }
+
+        private boolean isFiltered(Intent service) {
+            // disable tinker.
+            return service != null && service.getComponent() != null
+                    && EncodeUtils.decode("Y29tLnRlbmNlbnQudGlua2VyLmxpYi5zZXJ2aWMuVGlua2VyUGF0Y2hTZXJ2aWNl") // com.tencent.tinker.lib.service.TinkerPatchService
+                    .equals(service.getComponent().getClassName());
         }
     }
 
@@ -1290,7 +1320,7 @@ class MethodProxies {
             }
 
             public void performReceive(Intent intent, int resultCode, String data, Bundle extras, boolean ordered,
-                                       boolean sticky, int sendingUser) throws RemoteException {
+                                       boolean sticky, int sendingUser) {
                 if (!accept(intent)) {
                     return;
                 }

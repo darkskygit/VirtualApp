@@ -15,7 +15,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 
 import io.virtualapp.R;
-import io.virtualapp.VCommends;
+import io.virtualapp.VApp;
 import io.virtualapp.abs.ui.VActivity;
 import io.virtualapp.home.adapters.AppPagerAdapter;
 
@@ -24,23 +24,20 @@ import io.virtualapp.home.adapters.AppPagerAdapter;
  */
 public class ListAppActivity extends VActivity {
 
-    private Toolbar mToolBar;
-    private TabLayout mTabLayout;
     private ViewPager mViewPager;
 
     public static void gotoListApp(Activity activity) {
         Intent intent = new Intent(activity, ListAppActivity.class);
-        activity.startActivityForResult(intent, VCommends.REQUEST_SELECT_APP);
+        activity.startActivityForResult(intent, VApp.REQUEST_SELECT_APP);
     }
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_clone_app);
-        mToolBar = (Toolbar) findViewById(R.id.clone_app_tool_bar);
-        mTabLayout = (TabLayout) mToolBar.findViewById(R.id.clone_app_tab_layout);
-        mViewPager = (ViewPager) findViewById(R.id.clone_app_view_pager);
-        setupToolBar();
+        Toolbar mToolBar = findViewById(R.id.clone_app_tool_bar);
+        TabLayout mTabLayout = mToolBar.findViewById(R.id.clone_app_tab_layout);
+        mViewPager = findViewById(R.id.clone_app_view_pager);
         mViewPager.setAdapter(new AppPagerAdapter(getSupportFragmentManager()));
         mTabLayout.setupWithViewPager(mViewPager);
         // Request permission to access external storage
@@ -50,15 +47,6 @@ public class ListAppActivity extends VActivity {
             }
         }
     }
-
-    private void setupToolBar() {
-//        setSupportActionBar(mToolBar);
-//        ActionBar actionBar = getSupportActionBar();
-//        if (actionBar != null) {
-//            actionBar.setDisplayHomeAsUpEnabled(true);
-//        }
-    }
-
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {

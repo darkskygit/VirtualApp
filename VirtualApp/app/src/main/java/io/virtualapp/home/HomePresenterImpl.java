@@ -6,14 +6,13 @@ import android.widget.Toast;
 import com.lody.virtual.client.core.VirtualCore;
 
 import io.virtualapp.R;
-import io.virtualapp.VCommends;
+import io.virtualapp.VApp;
 import io.virtualapp.home.models.AppData;
 import io.virtualapp.home.models.AppInfoLite;
 import io.virtualapp.home.models.MultiplePackageAppData;
 import io.virtualapp.home.models.PackageAppData;
 import io.virtualapp.home.repo.AppRepository;
 import io.virtualapp.sys.Installd;
-import jonathanfinerty.once.Once;
 
 /**
  * @author Lody
@@ -34,16 +33,6 @@ class HomePresenterImpl implements HomeContract.HomePresenter {
     @Override
     public void start() {
         dataChanged();
-        if (!Once.beenDone(VCommends.TAG_SHOW_ADD_APP_GUIDE)) {
-            mView.showGuide();
-            Once.markDone(VCommends.TAG_SHOW_ADD_APP_GUIDE);
-        }
-        /*
-        Delete GMS Support, becuase it may conflict with xposed.
-        if (!Once.beenDone(VCommends.TAG_ASK_INSTALL_GMS) && GmsSupport.isOutsideGoogleFrameworkExist()) {
-            mView.askInstallGms();
-            Once.markDone(VCommends.TAG_ASK_INSTALL_GMS);
-        }*/
     }
 
     @Override
@@ -71,7 +60,17 @@ class HomePresenterImpl implements HomeContract.HomePresenter {
 
     @Override
     public void addApp(AppInfoLite info) {
-        Installd.addApp(info, model -> mView.refreshLauncherItem(model));
+        Installd.addApp(info, new Installd.UpdateListener() {
+            @Override
+            public void update(AppData model) {
+                mView.refreshLauncherItem(model);
+            }
+
+            @Override
+            public void fail(String msg) {
+                Toast.makeText(VApp.getApp(), msg, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override

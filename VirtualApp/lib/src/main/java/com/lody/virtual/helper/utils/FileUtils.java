@@ -96,13 +96,18 @@ public class FileUtils {
         if (dir == null) {
             return false;
         }
+        boolean success = true;
         if (dir.isDirectory()) {
             String[] children = dir.list();
             for (String file : children) {
-                boolean success = deleteDir(new File(dir, file));
-                if (!success) {
-                    return false;
+                boolean ret = deleteDir(new File(dir, file));
+                if (!ret) {
+                    success = false;
                 }
+            }
+            if (success) {
+                // if all subdirectory are deleted, delete the dir itself.
+                return dir.delete();
             }
         }
         return dir.delete();
@@ -218,6 +223,43 @@ public class FileUtils {
         } finally {
             closeQuietly(inputStream);
             closeQuietly(outputStream);
+        }
+    }
+
+    public static void copyFile(String source, String target) throws IOException {
+        File from = new File(source);
+        if (!from.exists()) {
+            return;
+        }
+        if (from.isFile()) {
+            copyFile(from, new File(target));
+        } else {
+            copyDir(source, target);
+        }
+    }
+
+    public static void copyDir(String sourcePath, String targetPath) throws IOException {
+        File from = new File(sourcePath);
+        if (!from.exists()) {
+            return;
+        }
+
+        File to = new File(targetPath);
+        if (!to.exists()) {
+            boolean mkdirs = to.mkdirs();
+            if (!mkdirs) {
+                return;
+            }
+        }
+
+        String[] child = from.list();
+        for (String file : child) {
+            File childSource = new File(sourcePath, file);
+            if (childSource.isDirectory()) {
+                copyDir(sourcePath + File.separator + file, targetPath + File.separator + file);
+            } else {
+                copyFile(childSource, new File(targetPath, file));
+            }
         }
     }
 

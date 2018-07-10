@@ -138,11 +138,11 @@ public class CloneAppListAdapter extends DragSelectRecyclerViewAdapter<CloneAppL
         ViewHolder(View itemView) {
             super(itemView);
             if (itemView != mFooterView) {
-                iconView = (ImageView) itemView.findViewById(R.id.item_app_icon);
-                nameView = (TextView) itemView.findViewById(R.id.item_app_name);
-                appCheckView = (ImageView) itemView.findViewById(R.id.item_app_checked);
-                labelView = (LabelView) itemView.findViewById(R.id.item_app_clone_count);
-                summaryView = (TextView) itemView.findViewById(R.id.item_app_summary);
+                iconView = itemView.findViewById(R.id.item_app_icon);
+                nameView = itemView.findViewById(R.id.item_app_name);
+                appCheckView = itemView.findViewById(R.id.item_app_checked);
+                labelView = itemView.findViewById(R.id.item_app_clone_count);
+                summaryView = itemView.findViewById(R.id.item_app_summary);
             }
         }
     }

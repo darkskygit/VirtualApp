@@ -82,11 +82,14 @@ public class VAppManagerService extends IAppManager.Stub {
     }
 
     private void cleanUpResidualFiles(PackageSetting ps) {
+        VLog.w(TAG, "cleanUpResidualFiles: " + ps.packageName);
         File dataAppDir = VEnvironment.getDataAppPackageDirectory(ps.packageName);
         FileUtils.deleteDir(dataAppDir);
-        for (int userId : VUserManagerService.get().getUserIds()) {
-            FileUtils.deleteDir(VEnvironment.getDataUserPackageDirectory(userId, ps.packageName));
-        }
+
+        // We shouldn't remove user data here!!! Just remove the package.
+        // for (int userId : VUserManagerService.get().getUserIds()) {
+        //     FileUtils.deleteDir(VEnvironment.getDataUserPackageDirectory(userId, ps.packageName));
+        // }
     }
 
 
@@ -341,6 +344,7 @@ public class VAppManagerService extends IAppManager.Stub {
                 ps.setInstalled(userId, false);
                 mPersistenceLayer.save();
                 FileUtils.deleteDir(VEnvironment.getDataUserPackageDirectory(userId, packageName));
+                FileUtils.deleteDir(VEnvironment.getVirtualPrivateStorageDir(userId, packageName));
             }
             return true;
         }
@@ -355,6 +359,7 @@ public class VAppManagerService extends IAppManager.Stub {
 
             for (int id : VUserManagerService.get().getUserIds()) {
                 FileUtils.deleteDir(VEnvironment.getDataUserPackageDirectory(id, packageName));
+                FileUtils.deleteDir(VEnvironment.getVirtualPrivateStorageDir(id, packageName));
             }
             return true;
         } catch (Exception e) {
@@ -382,6 +387,7 @@ public class VAppManagerService extends IAppManager.Stub {
                 notifyAppUninstalled(ps, userId);
                 mPersistenceLayer.save();
                 FileUtils.deleteDir(VEnvironment.getDataUserPackageDirectory(userId, packageName));
+                FileUtils.deleteDir(VEnvironment.getVirtualPrivateStorageDir(userId, packageName));
             }
             return true;
         }
@@ -398,6 +404,7 @@ public class VAppManagerService extends IAppManager.Stub {
             VEnvironment.getOdexFile(packageName).delete();
             for (int id : VUserManagerService.get().getUserIds()) {
                 FileUtils.deleteDir(VEnvironment.getDataUserPackageDirectory(id, packageName));
+                FileUtils.deleteDir(VEnvironment.getVirtualPrivateStorageDir(id, packageName));
             }
             PackageCacheManager.remove(packageName);
         } catch (Exception e) {

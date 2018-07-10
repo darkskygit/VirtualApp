@@ -16,6 +16,7 @@ import android.content.res.Configuration;
 import android.os.Binder;
 import android.os.Build;
 import android.os.ConditionVariable;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.IInterface;
@@ -24,8 +25,6 @@ import android.os.Message;
 import android.os.Process;
 import android.os.RemoteException;
 import android.os.StrictMode;
-import android.util.Base64;
-import android.util.Log;
 
 import com.lody.virtual.client.core.CrashHandler;
 import com.lody.virtual.client.core.InvocationStubManager;
@@ -64,6 +63,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import mirror.android.app.ActivityThread;
 import mirror.android.app.ActivityThreadNMR1;
@@ -119,11 +119,11 @@ public final class VClientImpl extends IVClient.Stub {
         return mBoundApplication != null;
     }
 
-    public VDeviceInfo getDeviceInfo(int AppId) {
+    public VDeviceInfo getDeviceInfo() {
         if (deviceInfo == null) {
             synchronized (this) {
                 if (deviceInfo == null) {
-                    deviceInfo = VDeviceManager.get().getDeviceInfo(getUserId(vuid), AppId);
+                    deviceInfo = VDeviceManager.get().getDeviceInfo(getUserId(vuid));
                 }
             }
         }
@@ -230,7 +230,7 @@ public final class VClientImpl extends IVClient.Stub {
     }
 
     private void bindApplicationNoCheck(String packageName, String processName, ConditionVariable lock) {
-        VDeviceInfo deviceInfo = getDeviceInfo(VUserHandle.myAppId());
+        VDeviceInfo deviceInfo = getDeviceInfo();
         if (processName == null) {
             processName = packageName;
         }
@@ -262,7 +262,7 @@ public final class VClientImpl extends IVClient.Stub {
         data.processName = processName;
         data.appInfo.processName = processName;
         data.providers = VPackageManager.get().queryContentProviders(processName, getVUid(), PackageManager.GET_META_DATA);
-        Log.i(TAG, "Binding application " + data.appInfo.packageName + " (" + data.processName + ")");
+        VLog.i(TAG, String.format("Binding application %s, (%s)", data.appInfo.packageName, data.processName));
         mBoundApplication = data;
         VirtualRuntime.setupRuntime(data.processName, data.appInfo);
         int targetSdkVersion = data.appInfo.targetSdkVersion;
@@ -280,7 +280,16 @@ public final class VClientImpl extends IVClient.Stub {
         Object mainThread = VirtualCore.mainThread();
         NativeEngine.startDexOverride();
         Context context = createPackageContext(data.appInfo.packageName);
-        System.setProperty("java.io.tmpdir", context.getCacheDir().getAbsolutePath());
+        try {
+            // anti-virus, fuck ESET-NOD32: a variant of Android/AdDisplay.AdLock.AL potentially unwanted
+            // we can make direct call... use reflect to bypass.
+            // System.setProperty("java.io.tmpdir", context.getCacheDir().getAbsolutePath());
+            System.class.getDeclaredMethod("setProperty", String.class, String.class)
+                    .invoke(null, "java.io.tmpdir", context.getCacheDir().getAbsolutePath());
+        } catch (Throwable ignored) {
+            VLog.e(TAG, "set tmp dir error:", ignored);
+        }
+
         File codeCacheDir;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             codeCacheDir = context.getCodeCacheDir();
@@ -406,6 +415,9 @@ public final class VClientImpl extends IVClient.Stub {
                 groups.add(newRoot);
                 mirror.java.lang.ThreadGroup.groups.set(root, groups);
                 for (ThreadGroup group : newGroups) {
+                    if (group == newRoot) {
+                        continue;
+                    }
                     mirror.java.lang.ThreadGroup.parent.set(group, newRoot);
                 }
             }
@@ -416,7 +428,10 @@ public final class VClientImpl extends IVClient.Stub {
                 ThreadGroup[] newGroups = groups.clone();
                 ThreadGroupN.groups.set(newRoot, newGroups);
                 ThreadGroupN.groups.set(root, new ThreadGroup[]{newRoot});
-                for (ThreadGroup group : newGroups) {
+                for (Object group : newGroups) {
+                    if (group == newRoot) {
+                        continue;
+                    }
                     ThreadGroupN.parent.set(group, newRoot);
                 }
                 ThreadGroupN.ngroups.set(root, 1);
@@ -493,7 +508,7 @@ public final class VClientImpl extends IVClient.Stub {
                 locationManager.setMode(userId, info.packageName, 1);
                 locationManager.setGlobalCell(new VCell());
                 locationManager.setGlobalLocation(new VLocation());
-                locationManager.setGlobalNeighboringCell(new ArrayList<VCell>());
+                locationManager.setGlobalNeighboringCell(new ArrayList<>());
             }
         }
 
@@ -503,28 +518,63 @@ public final class VClientImpl extends IVClient.Stub {
     }
 
     private void setupVirtualStorage(ApplicationInfo info, int userId) {
+        VirtualStorageManager vsManager = VirtualStorageManager.get();
+        boolean enable = vsManager.isVirtualStorageEnable(info.packageName, userId);
+        if (!enable) {
+            // There are lots of situation to deal, I am tired, disable it now.
+            // such as: FileProvider.
+            return;
+        }
+
         File vsDir = VEnvironment.getVirtualStorageDir(info.packageName, userId);
         if (vsDir == null || !vsDir.exists() || !vsDir.isDirectory()) {
             return;
         }
 
-        VirtualStorageManager vsManager = VirtualStorageManager.get();
-        boolean enable = vsManager.isVirtualStorageEnable(info.packageName, userId);
-        HashSet<String> mountPoints = getMountPoints();
-        if (enable) {
-            vsManager.setVirtualStorage(info.packageName, userId, vsDir.getPath());
-            // redirect for normal path
-            for (String mountPoint : mountPoints) {
-                NativeEngine.redirectDirectory(mountPoint, vsDir.getPath());
+        HashSet<String> storageRoots = getMountPoints();
+        storageRoots.add(Environment.getExternalStorageDirectory().getAbsolutePath());
+
+        Set<String> whiteList = new HashSet<>();
+        whiteList.add(Environment.DIRECTORY_PODCASTS);
+        whiteList.add(Environment.DIRECTORY_RINGTONES);
+        whiteList.add(Environment.DIRECTORY_ALARMS);
+        whiteList.add(Environment.DIRECTORY_NOTIFICATIONS);
+        whiteList.add(Environment.DIRECTORY_PICTURES);
+        whiteList.add(Environment.DIRECTORY_MOVIES);
+        whiteList.add(Environment.DIRECTORY_DOWNLOADS);
+        whiteList.add(Environment.DIRECTORY_DCIM);
+        whiteList.add("Android/obb");
+        if (Build.VERSION.SDK_INT >= 19) {
+            whiteList.add(Environment.DIRECTORY_DOCUMENTS);
+        }
+
+        // ensure virtual storage white directory exists.
+        for (String whiteDir : whiteList) {
+            File originalDir = new File(Environment.getExternalStorageDirectory(), whiteDir);
+            File virtualDir = new File(vsDir, whiteDir);
+            if (!originalDir.exists()) {
+                continue;
             }
-        } else {
-            // redirect tencent to avoid message mess
-            final String tStr = new String(Base64.decode("dGVuY2VudA==", 0));
-            for (String mountPoint : mountPoints) {
-                File tDir = new File(mountPoint, tStr);
-                File tRelocateDir = new File(vsDir, tStr);
-                NativeEngine.redirectDirectory(tDir.getAbsolutePath(), tRelocateDir.getAbsolutePath());
+            //noinspection ResultOfMethodCallIgnored
+            virtualDir.mkdirs();
+        }
+
+        String vsPath = vsDir.getAbsolutePath();
+        NativeEngine.whitelist(vsPath, true);
+        String privatePath = VEnvironment.getVirtualPrivateStorageDir(userId).getAbsolutePath();
+        NativeEngine.whitelist(privatePath, true);
+
+        for (String storageRoot : storageRoots) {
+            for (String whiteDir : whiteList) {
+                // white list, do not redirect
+                String whitePath = new File(storageRoot, whiteDir).getAbsolutePath();
+                NativeEngine.whitelist(whitePath, true);
             }
+
+            // redirect xxx/Android/data/ -> /xxx/Android/data/<host>/virtual/<user>
+            NativeEngine.redirectDirectory(new File(storageRoot, "Android/data/").getAbsolutePath(), privatePath);
+            // redirect /sdcard/ -> vsdcard
+            NativeEngine.redirectDirectory(storageRoot, vsPath);
         }
     }
 
@@ -601,7 +651,7 @@ public final class VClientImpl extends IVClient.Stub {
                 client = resolver.acquireContentProviderClient(authority);
             }
         } catch (Throwable e) {
-            e.printStackTrace();
+            VLog.e(TAG, "", e);
         }
         if (client != null) {
             provider = mirror.android.content.ContentProviderClient.mContentProvider.get(client);
@@ -723,10 +773,8 @@ public final class VClientImpl extends IVClient.Stub {
                 result.finish();
             }
         } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(
-                    "Unable to start receiver " + data.component
-                            + ": " + e.toString(), e);
+            // must be this for misjudge of anti-virus!!
+            throw new RuntimeException(String.format("Unable to start receiver: %s ", data.component), e);
         }
         VActivityManager.get().broadcastFinish(data.resultData);
     }

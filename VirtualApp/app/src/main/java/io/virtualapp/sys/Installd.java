@@ -2,9 +2,11 @@ package io.virtualapp.sys;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 
+import com.lody.virtual.GmsSupport;
 import com.lody.virtual.client.core.InstallStrategy;
 import com.lody.virtual.client.core.VirtualCore;
 import com.lody.virtual.helper.utils.DeviceUtil;
@@ -15,9 +17,9 @@ import com.lody.virtual.remote.InstalledAppInfo;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 import io.virtualapp.VApp;
-import io.virtualapp.VCommends;
 import io.virtualapp.abs.ui.VUiKit;
 import io.virtualapp.home.models.AppData;
 import io.virtualapp.home.models.AppInfoLite;
@@ -32,6 +34,8 @@ public class Installd {
 
     public interface UpdateListener {
         void update(AppData model);
+
+        void fail(String msg);
     }
 
     public static void addApp(AppInfoLite info, UpdateListener refreshListener) {
@@ -83,7 +87,7 @@ public class Installd {
                     pkgInfo.applicationInfo.publicSourceDir = info.path;
                 } catch (Exception e) {
                 }
-                if(pkgInfo != null) {
+                if (pkgInfo != null) {
                     PackageAppData data = PackageAppDataStorage.get().acquire(pkgInfo.applicationInfo);
                     addResult.appData = data;
                     data.isInstalling = true;
@@ -98,7 +102,7 @@ public class Installd {
                     if (addResult.appData != null) {
                         // mView.removeAppToLauncher(addResult.appData);
                     }
-                    throw new IllegalStateException();
+                    throw new IllegalStateException(res.error);
                 }
             }
         }).then((res) -> {
@@ -125,6 +129,10 @@ public class Installd {
                     refreshListener.update(data);
                 }
                 handleOptApp(data, info.packageName, false, refreshListener);
+            }
+        }).fail(result -> {
+            if (refreshListener != null) {
+                refreshListener.fail(result.getMessage());
             }
         });
     }
@@ -164,10 +172,7 @@ public class Installd {
 
     public static InstallResult addVirtualApp(AppInfoLite info) {
         int flags = InstallStrategy.COMPARE_VERSION | InstallStrategy.SKIP_DEX_OPT;
-        info.fastOpen = false; // disable fast open for compile.
-        if (DeviceUtil.isMeizuBelowN()) {
-            info.fastOpen = true;
-        }
+        info.fastOpen = DeviceUtil.isMeizuBelowN();
         if (info.fastOpen) {
             flags |= InstallStrategy.DEPEND_SYSTEM_IF_EXIST;
         }
@@ -192,7 +197,6 @@ public class Installd {
         if (pkgInfo == null) {
             return null;
         }
-
         boolean isXposed = pkgInfo.applicationInfo.metaData != null
                 && pkgInfo.applicationInfo.metaData.containsKey("xposedmodule");
         AppInfoLite appInfoLite = new AppInfoLite(pkgInfo.packageName, path, false, isXposed);
@@ -215,8 +219,37 @@ public class Installd {
             return;
         }
         Intent intent = new Intent(context, InstallerActivity.class);
-        intent.putParcelableArrayListExtra(VCommends.EXTRA_APP_INFO_LIST, data);
+        intent.putParcelableArrayListExtra(VApp.EXTRA_APP_INFO_LIST, data);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(intent);
+    }
+
+    public static void addGmsSupport() {
+        List<String> gApps = new ArrayList<>();
+        gApps.addAll(GmsSupport.GOOGLE_APP);
+        gApps.addAll(GmsSupport.GOOGLE_SERVICE);
+
+        VirtualCore core = VirtualCore.get();
+        final int userId = 0;
+
+        ArrayList<AppInfoLite> toInstalled = new ArrayList<>();
+        for (String packageName : gApps) {
+            if (core.isAppInstalledAsUser(userId, packageName)) {
+                continue;
+            }
+            ApplicationInfo info = null;
+            try {
+                info = VirtualCore.get().getUnHookPackageManager().getApplicationInfo(packageName, 0);
+            } catch (PackageManager.NameNotFoundException e) {
+                // Ignore
+            }
+            if (info == null || info.sourceDir == null) {
+                continue;
+            }
+
+            AppInfoLite lite = new AppInfoLite(info.packageName, info.sourceDir, false, true);
+            toInstalled.add(lite);
+        }
+        startInstallerActivity(VirtualCore.get().getContext(), toInstalled);
     }
 }

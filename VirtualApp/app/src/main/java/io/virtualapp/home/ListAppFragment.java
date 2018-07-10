@@ -80,9 +80,9 @@ public class ListAppFragment extends VFragment<ListAppContract.ListAppPresenter>
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
-        mRecyclerView = (DragSelectRecyclerView) view.findViewById(R.id.select_app_recycler_view);
-        mProgressBar = (ProgressBar) view.findViewById(R.id.select_app_progress_bar);
-        mInstallButton = (Button) view.findViewById(R.id.select_app_install_btn);
+        mRecyclerView = view.findViewById(R.id.select_app_recycler_view);
+        mProgressBar = view.findViewById(R.id.select_app_progress_bar);
+        mInstallButton = view.findViewById(R.id.select_app_install_btn);
         mSelectFromExternal = view.findViewById(R.id.select_app_from_external);
         mRecyclerView.setLayoutManager(new StaggeredGridLayoutManager(1, OrientationHelper.VERTICAL));
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL);
@@ -114,7 +114,7 @@ public class ListAppFragment extends VFragment<ListAppContract.ListAppPresenter>
         });
         mInstallButton.setOnClickListener(v -> {
             Integer[] selectedIndices = mAdapter.getSelectedIndices();
-            ArrayList<AppInfoLite> dataList = new ArrayList<AppInfoLite>(selectedIndices.length);
+            ArrayList<AppInfoLite> dataList = new ArrayList<>(selectedIndices.length);
             for (int index : selectedIndices) {
                 AppInfo info = mAdapter.getItem(index);
                 dataList.add(new AppInfoLite(info.packageName, info.path, info.fastOpen, info.disableMultiVersion));
@@ -125,9 +125,13 @@ public class ListAppFragment extends VFragment<ListAppContract.ListAppPresenter>
         });
         mSelectFromExternal.setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-            intent.setType("application/vnd.android"); // apk file
+            intent.setType("application/vnd.android.package-archive"); // apk file
             intent.addCategory(Intent.CATEGORY_OPENABLE);
-            startActivityForResult(intent, REQUEST_GET_FILE);
+            try {
+                startActivityForResult(intent, REQUEST_GET_FILE);
+            } catch (Throwable ignored) {
+                Toast.makeText(getActivity(), "Error", Toast.LENGTH_SHORT).show();
+            }
         });
         new ListAppPresenterImpl(getActivity(), this, getSelectFrom()).start();
     }

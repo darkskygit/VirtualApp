@@ -15,7 +15,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.PowerManager;
 import android.os.Process;
-import android.os.RemoteException;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
@@ -43,11 +42,11 @@ import com.lody.virtual.os.VUserManager;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import io.virtualapp.R;
 import io.virtualapp.VApp;
-import io.virtualapp.VCommends;
 import io.virtualapp.abs.Function;
 import io.virtualapp.abs.nestedadapter.SmartRecyclerAdapter;
 import io.virtualapp.abs.ui.VActivity;
@@ -88,10 +87,7 @@ public class HomeActivity extends VActivity implements HomeContract.HomeView {
     private View mBottomArea;
     private View mLeftArea;
     private View mRightArea;
-    private View mCreateShortcutBox;
-    private View mClearAppBox;
     private TextView mClearAppTextView;
-    private View mKillAppBox;
     private TextView mKillAppTextView;
     private TextView mCreateShortcutTextView;
     private View mDeleteAppBox;
@@ -102,25 +98,25 @@ public class HomeActivity extends VActivity implements HomeContract.HomeView {
     //region ---------------package observer---------------
     private VirtualCore.PackageObserver mPackageObserver = new VirtualCore.PackageObserver() {
         @Override
-        public void onPackageInstalled(String packageName) throws RemoteException {
+        public void onPackageInstalled(String packageName) {
             if (!isForground) {
                 runOnUiThread(() -> mPresenter.dataChanged());
             }
         }
 
         @Override
-        public void onPackageUninstalled(String packageName) throws RemoteException {
+        public void onPackageUninstalled(String packageName) {
             if (!isForground) {
                 runOnUiThread(() -> mPresenter.dataChanged());
             }
         }
 
         @Override
-        public void onPackageInstalledAsUser(int userId, String packageName) throws RemoteException {
+        public void onPackageInstalledAsUser(int userId, String packageName) {
         }
 
         @Override
-        public void onPackageUninstalledAsUser(int userId, String packageName) throws RemoteException {
+        public void onPackageUninstalledAsUser(int userId, String packageName) {
         }
     };
     private boolean isForground = false;
@@ -169,7 +165,7 @@ public class HomeActivity extends VActivity implements HomeContract.HomeView {
     private void initMenu() {
         mPopupMenu = new PopupMenu(new ContextThemeWrapper(this, R.style.Theme_AppCompat_Light), mMenuView);
         Menu menu = mPopupMenu.getMenu();
-        setIconEnable(menu, true);
+        setIconEnable(menu);
         menu.add(R.string.menu_accounts).setIcon(R.drawable.ic_account).setOnMenuItemClickListener(item -> {
             List<VUserInfo> users = VUserManager.get().getUsers();
             List<String> names = new ArrayList<>(users.size());
@@ -229,32 +225,29 @@ public class HomeActivity extends VActivity implements HomeContract.HomeView {
         lastClickRebootTime = now;
     }
 
-    private static void setIconEnable(Menu menu, boolean enable) {
+    private static void setIconEnable(Menu menu) {
         try {
             @SuppressLint("PrivateApi")
             Method m = menu.getClass().getDeclaredMethod("setOptionalIconsVisible", boolean.class);
             m.setAccessible(true);
-            m.invoke(menu, enable);
+            m.invoke(menu, true);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     private void bindViews() {
-        mLoadingView = (TwoGearsView) findViewById(R.id.pb_loading_app);
-        mLauncherView = (RecyclerView) findViewById(R.id.home_launcher);
+        mLoadingView = findViewById(R.id.pb_loading_app);
+        mLauncherView = findViewById(R.id.home_launcher);
         mMenuView = findViewById(R.id.home_menu);
         mBottomArea = findViewById(R.id.bottom_area);
         mLeftArea = findViewById(R.id.left_area);
         mRightArea = findViewById(R.id.right_area);
-        mClearAppBox = findViewById(R.id.clear_app_area);
-        mClearAppTextView = (TextView) findViewById(R.id.clear_app_text);
-        mKillAppBox = findViewById(R.id.kill_app_area);
-        mKillAppTextView = (TextView) findViewById(R.id.kill_app_text);
-        mCreateShortcutBox = findViewById(R.id.create_shortcut_area);
-        mCreateShortcutTextView = (TextView) findViewById(R.id.create_shortcut_text);
+        mClearAppTextView = findViewById(R.id.clear_app_text);
+        mKillAppTextView = findViewById(R.id.kill_app_text);
+        mCreateShortcutTextView = findViewById(R.id.create_shortcut_text);
         mDeleteAppBox = findViewById(R.id.delete_app_area);
-        mDeleteAppTextView = (TextView) findViewById(R.id.delete_app_text);
+        mDeleteAppTextView = findViewById(R.id.delete_app_text);
     }
 
     private void initLaunchpad() {
@@ -295,9 +288,7 @@ public class HomeActivity extends VActivity implements HomeContract.HomeView {
         AlertDialog alertDialog = new AlertDialog.Builder(this)
                 .setTitle(R.string.home_menu_delete_title)
                 .setMessage(getResources().getString(R.string.home_menu_delete_content, data.getName()))
-                .setPositiveButton(android.R.string.yes, (dialog, which) -> {
-                    mPresenter.deleteApp(data);
-                })
+                .setPositiveButton(android.R.string.yes, (dialog, which) -> mPresenter.deleteApp(data))
                 .setNegativeButton(android.R.string.no, null)
                 .create();
         try {
@@ -316,9 +307,7 @@ public class HomeActivity extends VActivity implements HomeContract.HomeView {
         AlertDialog alertDialog = new AlertDialog.Builder(this)
                 .setTitle(R.string.home_menu_clear_title)
                 .setMessage(getResources().getString(R.string.home_menu_clear_content, data.getName()))
-                .setPositiveButton(android.R.string.yes, (dialog, which) -> {
-                    mPresenter.clearApp(data);
-                })
+                .setPositiveButton(android.R.string.yes, (dialog, which) -> mPresenter.clearApp(data))
                 .setNegativeButton(android.R.string.no, null)
                 .create();
         try {
@@ -337,9 +326,7 @@ public class HomeActivity extends VActivity implements HomeContract.HomeView {
         AlertDialog alertDialog = new AlertDialog.Builder(this)
                 .setTitle(R.string.home_menu_kill_title)
                 .setMessage(getResources().getString(R.string.home_menu_kill_content, data.getName()))
-                .setPositiveButton(android.R.string.yes, (dialog, which) -> {
-                    mPresenter.killApp(data);
-                })
+                .setPositiveButton(android.R.string.yes, (dialog, which) -> mPresenter.killApp(data))
                 .setNegativeButton(android.R.string.no, null)
                 .create();
         try {
@@ -441,7 +428,7 @@ public class HomeActivity extends VActivity implements HomeContract.HomeView {
 
     @Override
     public void loadFinish(List<AppData> list) {
-        list.sort((o1, o2) -> o1.getName().toLowerCase().compareTo(o2.getName().toLowerCase()));
+        list.sort(Comparator.comparing(o -> o.getName().toLowerCase()));
         list.add(new AddAppButton(this));
         mLaunchpadAdapter.setList(list);
         hideLoading();
@@ -451,11 +438,6 @@ public class HomeActivity extends VActivity implements HomeContract.HomeView {
     public void loadError(Throwable err) {
         err.printStackTrace();
         hideLoading();
-    }
-
-    @Override
-    public void showGuide() {
-
     }
 
     @Override
@@ -495,13 +477,7 @@ public class HomeActivity extends VActivity implements HomeContract.HomeView {
         new AlertDialog.Builder(this)
                 .setTitle("Hi")
                 .setMessage("We found that your device has been installed the Google service, whether you need to install them?")
-                .setPositiveButton(android.R.string.ok, (dialog, which) -> {
-                    defer().when(() -> {
-                        GmsSupport.installGApps(0);
-                    }).done((res) -> {
-                        mPresenter.dataChanged();
-                    });
-                })
+                .setPositiveButton(android.R.string.ok, (dialog, which) -> defer().when(() -> GmsSupport.installGApps(0)).done((res) -> mPresenter.dataChanged()))
                 .setNegativeButton(android.R.string.cancel, (dialog, which) ->
                         Toast.makeText(HomeActivity.this, "You can also find it in the Settings~", Toast.LENGTH_LONG).show())
                 .setCancelable(false)
@@ -512,7 +488,7 @@ public class HomeActivity extends VActivity implements HomeContract.HomeView {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK && data != null) {
-            List<AppInfoLite> appList = data.getParcelableArrayListExtra(VCommends.EXTRA_APP_INFO_LIST);
+            List<AppInfoLite> appList = data.getParcelableArrayListExtra(VApp.EXTRA_APP_INFO_LIST);
             if (appList != null) {
                 boolean showTip = false;
                 for (AppInfoLite info : appList) {

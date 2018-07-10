@@ -4,7 +4,6 @@ import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
-import android.util.Log;
 
 import com.lody.virtual.client.NativeEngine;
 import com.lody.virtual.client.core.VirtualCore;
@@ -24,6 +23,13 @@ public class VApp extends Application {
 
     public static final String XPOSED_INSTALLER_PACKAGE = "de.robv.android.xposed.installer";
 
+    public static final String TAG_NEW_VERSION = "First launch new Version";
+    public static final String TAG_SHOW_ADD_APP_GUIDE = "Should show add app guide";
+
+    public static final int REQUEST_SELECT_APP = 5;
+
+    public static final String EXTRA_APP_INFO_LIST = "va.extra.APP_INFO_LIST";
+
     private static VApp gApp;
     private SharedPreferences mPreferences;
 
@@ -34,9 +40,7 @@ public class VApp extends Application {
     @Override
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            NativeEngine.disableJit();
-        }
+        NativeEngine.disableJit(Build.VERSION.SDK_INT);
         mPreferences = base.getSharedPreferences("va", Context.MODE_MULTI_PROCESS);
         VASettings.ENABLE_IO_REDIRECT = true;
         VASettings.ENABLE_INNER_SHORTCUT = false;

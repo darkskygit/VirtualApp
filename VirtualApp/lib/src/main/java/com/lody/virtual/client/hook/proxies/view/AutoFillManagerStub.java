@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.util.Log;
 
 import com.lody.virtual.client.hook.base.BinderInvocationProxy;
-import com.lody.virtual.client.hook.base.MethodProxy;
 import com.lody.virtual.client.hook.base.ReplaceLastPkgMethodProxy;
 import com.lody.virtual.client.hook.utils.MethodParameterUtils;
 
@@ -47,9 +46,10 @@ public class AutoFillManagerStub extends BinderInvocationProxy {
             Log.e(TAG, "AutoFillManagerStub inject error.", tr);
             return;
         }
+
         addMethodProxy(new ReplacePkgAndComponentProxy("startSession"));
         addMethodProxy(new ReplacePkgAndComponentProxy("updateOrRestartSession"));
-        addMethodProxy(new ReplacePkgAndComponentProxy("isServiceEnabled"));
+        addMethodProxy(new ReplaceLastPkgMethodProxy("isServiceEnabled"));
     }
 
     static class ReplacePkgAndComponentProxy extends ReplaceLastPkgMethodProxy {

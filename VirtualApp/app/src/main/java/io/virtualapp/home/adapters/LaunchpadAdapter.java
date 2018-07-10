@@ -203,9 +203,9 @@ public class LaunchpadAdapter extends RecyclerView.Adapter<LaunchpadAdapter.View
 
         ViewHolder(View itemView) {
             super(itemView);
-            iconView = (LauncherIconView) itemView.findViewById(R.id.item_app_icon);
-            nameView = (TextView) itemView.findViewById(R.id.item_app_name);
-            spaceLabelView = (LabelView) itemView.findViewById(R.id.item_app_space_idx);
+            iconView = itemView.findViewById(R.id.item_app_icon);
+            nameView = itemView.findViewById(R.id.item_app_name);
+            spaceLabelView = itemView.findViewById(R.id.item_app_space_idx);
             firstOpenDot = itemView.findViewById(R.id.item_first_open_dot);
         }
     }

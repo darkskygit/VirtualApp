@@ -1,12 +1,12 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 27
-    buildToolsVersion '27.0.3'
+    compileSdkVersion 26
+    buildToolsVersion '28.0.1'
 
     defaultConfig {
         minSdkVersion 26
-        targetSdkVersion 27
+        targetSdkVersion 26
         versionCode 1
         versionName "1.0"
         externalNativeBuild {
@@ -44,8 +44,8 @@ android {
 
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'com.google.inject:guice:4.1.0'
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'com.google.inject:guice:4.1.0'
 }
 
 repositories {

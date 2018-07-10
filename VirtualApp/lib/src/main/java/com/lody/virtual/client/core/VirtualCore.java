@@ -55,11 +55,8 @@ import com.lody.virtual.server.interfaces.IPackageObserver;
 import com.lody.virtual.server.interfaces.IUiCallback;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Collections;
-import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 
 import mirror.android.app.ActivityThread;
@@ -438,16 +435,16 @@ public final class VirtualCore {
     }
 
     public static Bitmap drawableToBitmap(Drawable drawable) {
-        Bitmap bitmap = null;
+        Bitmap bitmap;
 
         if (drawable instanceof BitmapDrawable) {
             BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
-            if(bitmapDrawable.getBitmap() != null) {
+            if (bitmapDrawable.getBitmap() != null) {
                 return bitmapDrawable.getBitmap();
             }
         }
 
-        if(drawable.getIntrinsicWidth() <= 0 || drawable.getIntrinsicHeight() <= 0) {
+        if (drawable.getIntrinsicWidth() <= 0 || drawable.getIntrinsicHeight() <= 0) {
             bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888); // Single color bitmap will be created of 1x1 pixel
         } else {
             bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
@@ -494,31 +491,40 @@ public final class VirtualCore {
         if (targetIntent == null) {
             return false;
         }
-        for (HashMap.Entry<String,IconPackManager.IconPack> entry :
+        for (HashMap.Entry<String, IconPackManager.IconPack> entry :
                 new IconPackManager().getAvailableIconPacks(pm, getPM(), false).entrySet()) {
             icon = entry.getValue().getIconForIntent(targetIntent, packageName, icon);
         }
-        Intent shortcutIntent = new Intent();
+        Intent shortcutIntent = new Intent(Intent.ACTION_VIEW);
         shortcutIntent.setClassName(getHostPkg(), Constants.SHORTCUT_PROXY_ACTIVITY_NAME);
         shortcutIntent.addCategory(Intent.CATEGORY_DEFAULT);
-        shortcutIntent.setAction(Intent.ACTION_VIEW);
         if (splash != null) {
             shortcutIntent.putExtra("_VA_|_splash_", splash.toUri(0));
         }
-//        shortcutIntent.putExtra("_VA_|_intent_", targetIntent);
+        shortcutIntent.putExtra("_VA_|_intent_", targetIntent);
         shortcutIntent.putExtra("_VA_|_uri_", targetIntent.toUri(0));
         shortcutIntent.putExtra("_VA_|_user_id_", userId);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            return createDeskShortcutAboveO(context, id, name, icon, shortcutIntent);
-        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
             // bad parcel.
             shortcutIntent.removeExtra("_VA_|_intent_");
+
+            Icon withBitmap = Icon.createWithBitmap(icon);
+            ShortcutInfo likeShortcut = new ShortcutInfo.Builder(context, id)
+                    .setShortLabel(name)
+                    .setLongLabel(name)
+                    .setIcon(withBitmap)
+                    .setIntent(shortcutIntent)
+                    .build();
+
             // crate app shortcuts.
-            createShortcutAboveN(context, id, name, icon, shortcutIntent);
+            createShortcutAboveN(context, likeShortcut);
+
+           if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+               return createDeskShortcutAboveO(context, likeShortcut);
+           }
         }
+
 
         Intent addIntent = new Intent();
         addIntent.putExtra(Intent.EXTRA_SHORTCUT_INTENT, shortcutIntent);
@@ -534,18 +540,7 @@ public final class VirtualCore {
     }
 
     @TargetApi(Build.VERSION_CODES.N_MR1)
-    private static boolean createShortcutAboveN(Context context, String id, String label, Bitmap icon, Intent intent) {
-        intent.setAction(Intent.ACTION_VIEW);
-
-        label = label.replaceAll("\\(VAE\\)", ""); // remove (VAE)
-        Icon withBitmap = Icon.createWithBitmap(icon);
-        ShortcutInfo likeShortcut = new ShortcutInfo.Builder(context, id)
-                .setShortLabel(label)
-                .setLongLabel(label)
-                .setIcon(withBitmap)
-                .setIntent(intent)
-                .build();
-
+    private static boolean createShortcutAboveN(Context context, ShortcutInfo likeShortcut) {
         ShortcutManager shortcutManager = context.getSystemService(ShortcutManager.class);
         if (shortcutManager == null) {
             return false;
@@ -554,12 +549,9 @@ public final class VirtualCore {
             int max = shortcutManager.getMaxShortcutCountPerActivity();
             List<ShortcutInfo> dynamicShortcuts = shortcutManager.getDynamicShortcuts();
             if (dynamicShortcuts.size() >= max) {
-                Collections.sort(dynamicShortcuts, new Comparator<ShortcutInfo>() {
-                    @Override
-                    public int compare(ShortcutInfo o1, ShortcutInfo o2) {
-                        long r = o1.getLastChangedTimestamp() - o2.getLastChangedTimestamp();
-                        return r == 0 ? 0 : (r > 0 ? 1 : -1);
-                    }
+                dynamicShortcuts.sort((o1, o2) -> {
+                    long r = o1.getLastChangedTimestamp() - o2.getLastChangedTimestamp();
+                    return r == 0 ? 0 : (r > 0 ? 1 : -1);
                 });
 
                 ShortcutInfo remove = dynamicShortcuts.remove(0);// remove old.
@@ -574,21 +566,15 @@ public final class VirtualCore {
     }
 
     @TargetApi(Build.VERSION_CODES.O)
-    private static boolean createDeskShortcutAboveO(Context context, String id, String label, Bitmap icon, Intent intent) {
+    private static boolean createDeskShortcutAboveO(Context context, ShortcutInfo info) {
         ShortcutManager shortcutManager = context.getSystemService(ShortcutManager.class);
         if (shortcutManager == null) {
             return false;
         }
         if (shortcutManager.isRequestPinShortcutSupported()) {
-            ShortcutInfo info = new ShortcutInfo.Builder(context, id)
-                    .setIcon(Icon.createWithBitmap(icon))
-                    .setShortLabel(label)
-                    .setIntent(intent)
-                    .build();
             // 当添加快捷方式的确认弹框弹出来时，将被回调
             // PendingIntent shortcutCallbackIntent = PendingIntent.getBroadcast(context, 0,
             // new Intent(context, MyReceiver.class), PendingIntent.FLAG_UPDATE_CURRENT);
-
             try {
                 List<ShortcutInfo> pinnedShortcuts = shortcutManager.getPinnedShortcuts();
                 boolean exists = false;
@@ -604,7 +590,7 @@ public final class VirtualCore {
                     shortcutManager.requestPinShortcut(info, null);
                 }
                 return true;
-            } catch(Exception e) {
+            } catch (Exception e) {
                 return false;
             }
         }
@@ -818,22 +804,12 @@ public final class VirtualCore {
         IAppRequestListener inner = new IAppRequestListener.Stub() {
             @Override
             public void onRequestInstall(final String path) {
-                VirtualRuntime.getUIHandler().post(new Runnable() {
-                    @Override
-                    public void run() {
-                        listener.onRequestInstall(path);
-                    }
-                });
+                VirtualRuntime.getUIHandler().post(() -> listener.onRequestInstall(path));
             }
 
             @Override
             public void onRequestUninstall(final String pkg) {
-                VirtualRuntime.getUIHandler().post(new Runnable() {
-                    @Override
-                    public void run() {
-                        listener.onRequestUninstall(pkg);
-                    }
-                });
+                VirtualRuntime.getUIHandler().post(() -> listener.onRequestUninstall(pkg));
             }
         };
         try {

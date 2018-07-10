@@ -27,8 +27,6 @@ import io.virtualapp.home.models.AppInfoLite;
 
 		void loadError(Throwable err);
 
-		void showGuide();
-
 		void addAppToLauncher(AppData model);
 
         void removeAppToLauncher(AppData model);
