@@ -20,7 +20,7 @@ android {
     }
 
     compileSdkVersion 26
-    buildToolsVersion '28.0.1'
+    buildToolsVersion '28.0.2'
     defaultConfig {
         applicationId "io.virtualapp"
         minSdkVersion 26

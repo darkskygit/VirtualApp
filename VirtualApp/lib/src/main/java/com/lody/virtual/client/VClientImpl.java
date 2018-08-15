@@ -492,14 +492,11 @@ public final class VClientImpl extends IVClient.Stub {
         }});
         RedirectSameDstPaths(Arrays.asList("tencent", "Tencent"), TencentDirRedirect);
         RedirectSameDstPaths(Arrays.asList(info.packageName, ".ccb", ".com.taobao.dp", ".DataStorage", ".fs_deviceinfo", ".fslog",
-                ".SystemConfig", ".tbs", ".tcookieid", ".transportext", ".UTSystemConfig", "Amap", "amap", "alipay", "AmapSdk",
-                "baidu", "backup", "backups", "Ccb", "cmblife", "Documents", "libs", "Qmap", "QQBrowser", "Subtitles", "system",
+                ".SystemConfig", ".tbs", ".tcookieid", ".transportext", ".UTSystemConfig", "Android/obj", "Android/data/.um", "Amap", "amap", "alipay", "AmapSdk",
+                "baidu", "backup", "backups", "Ccb", "cmblife", "Documents", "facishare", "libs", "msc", "Qmap", "QQBrowser", "Subtitles", "system",
                 info.dataDir + "/app_tbs/", info.dataDir + "/files/xlog/", info.dataDir + "/tinker/"), RootDirKiller);
         NativeEngine.redirectDirectory(info.dataDir + "/cache/", VirtualCore.get().getContext().getCacheDir().getAbsolutePath());
         NativeEngine.redirectDirectory(info.dataDir + "/code_cache/", VirtualCore.get().getContext().getCodeCacheDir().getAbsolutePath());
-        if (!info.packageName.equals("com.nutomic.syncthingandroid")) {
-            RedirectSameDstPaths(Collections.singletonList("DCIM/Camera/"), RootDirKiller);
-        }
         RedirectSameDstPaths(Collections.singletonList(""), VEnvironment.getCacheDirectory().getAbsolutePath());
 
         if (!info.packageName.equals("me.gfuil.bmap")) {
