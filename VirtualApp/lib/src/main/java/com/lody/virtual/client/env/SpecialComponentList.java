@@ -55,6 +55,8 @@ public final class SpecialComponentList {
         SYSTEM_BROADCAST_ACTION.add("android.location.PROVIDERS_CHANGED");
         SYSTEM_BROADCAST_ACTION.add("android.location.MODE_CHANGED");
 
+        ACTION_BLACK_LIST.add(Intent.ACTION_BATTERY_CHANGED);
+        ACTION_BLACK_LIST.add("android.net.wifi.STATE_CHANGE");
         ACTION_BLACK_LIST.add("android.appwidget.action.APPWIDGET_UPDATE");
 
         WHITE_PERMISSION.add("com.google.android.gms.settings.SECURITY_SETTINGS");
