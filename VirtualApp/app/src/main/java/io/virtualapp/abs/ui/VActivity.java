@@ -2,12 +2,12 @@ package io.virtualapp.abs.ui;
 
 import android.app.Activity;
 import android.content.Context;
-import android.support.annotation.IdRes;
-import android.support.v4.app.Fragment;
-import android.support.v7.app.AppCompatActivity;
+import androidx.annotation.IdRes;
+import androidx.appcompat.app.AppCompatActivity;
 
 import org.jdeferred.android.AndroidDeferredManager;
 
+import androidx.fragment.app.Fragment;
 import io.virtualapp.abs.BaseView;
 
 /**

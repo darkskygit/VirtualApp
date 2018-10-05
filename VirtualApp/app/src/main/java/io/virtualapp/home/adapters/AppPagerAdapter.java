@@ -5,9 +5,6 @@ import android.os.Build;
 import android.os.Environment;
 import android.os.storage.StorageManager;
 import android.os.storage.StorageVolume;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
 
 import com.lody.virtual.helper.utils.DeviceUtil;
 import com.lody.virtual.helper.utils.Reflect;
@@ -16,6 +13,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentPagerAdapter;
 import io.virtualapp.R;
 import io.virtualapp.VApp;
 import io.virtualapp.home.ListAppFragment;

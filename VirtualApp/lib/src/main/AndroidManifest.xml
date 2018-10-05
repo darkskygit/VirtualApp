@@ -59,6 +59,7 @@
     <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
     <uses-permission android:name="android.permission.DOWNLOAD_WITHOUT_NOTIFICATION" />
     <uses-permission android:name="android.permission.EXPAND_STATUS_BAR" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <!--<uses-permission android:name="android.permission.FLASHLIGHT" />-->
     <!--<uses-permission android:name="android.permission.GET_ACCOUNTS" />-->
     <!--<uses-permission android:name="android.permission.GET_CLIPS" />-->
