@@ -64,6 +64,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import mirror.android.app.ActivityThread;
 import mirror.android.app.ActivityThreadNMR1;
@@ -462,6 +463,21 @@ public final class VClientImpl extends IVClient.Stub {
         });
     }
 
+     private static List<String> getProcPIDList(){
+        File proc = new File("/proc");
+         List<String> list = new ArrayList<>();
+         if(proc.isDirectory()){
+             File[] fileArray=proc.listFiles();
+             if(fileArray!=null) for (File dir : fileArray) {
+                 if (dir.isDirectory() && dir.canRead() && Pattern.compile("[0-9]{1,}").matcher(dir.getName()).matches()) {
+                     list.add(dir.getAbsolutePath());
+                 }
+             }
+             return list;
+         }
+         return list;
+     }
+
     @SuppressLint("SdCardPath")
     private void startIOUniformer() {
         ApplicationInfo info = mBoundApplication.appInfo;
@@ -498,6 +514,7 @@ public final class VClientImpl extends IVClient.Stub {
         NativeEngine.redirectDirectory(info.dataDir + "/cache/", VirtualCore.get().getContext().getCacheDir().getAbsolutePath());
         NativeEngine.redirectDirectory(info.dataDir + "/code_cache/", VirtualCore.get().getContext().getCodeCacheDir().getAbsolutePath());
         RedirectSameDstPaths(Collections.singletonList(""), VEnvironment.getCacheDirectory().getAbsolutePath());
+        RedirectSameDstPaths(getProcPIDList(), RootDirKiller);
 
         if (!info.packageName.equals("me.gfuil.bmap")) {
             VirtualLocationManager locationManager = VirtualLocationManager.get();
