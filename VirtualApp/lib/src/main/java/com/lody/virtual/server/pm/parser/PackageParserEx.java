@@ -61,7 +61,7 @@ public class PackageParserEx {
             VLog.d(TAG, "Using fake-signature feature on : " + p.packageName);
         } else {
             try {
-                PackageParserCompat.collectCertificates(parser, p, PackageParser.PARSE_IS_SYSTEM);
+            PackageParserCompat.collectCertificates(parser, p, PackageParser.PARSE_IS_SYSTEM, true);
             } catch (Throwable e) {
                 VLog.e(TAG, "collectCertificates failed", e);
                 if (VirtualCore.get().getContext().getFileStreamPath(Constants.FAKE_SIGNATURE_FLAG).exists()) {
@@ -185,7 +185,12 @@ public class PackageParserEx {
             }
         }
         cache.applicationInfo = p.applicationInfo;
-        cache.mSignatures = p.mSignatures;
+        cache.applicationInfo.sharedLibraryFiles = p.applicationInfo.sharedLibraryFiles;
+        if (Build.VERSION.SDK_INT >= 28) {
+            cache.mSignatures = p.mSigningDetails.signatures;
+        } else {
+            cache.mSignatures = p.mSignatures;
+        }
         cache.mAppMetaData = p.mAppMetaData;
         cache.packageName = p.packageName;
         cache.mPreferredOrder = p.mPreferredOrder;
@@ -216,6 +221,10 @@ public class PackageParserEx {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             ai.splitSourceDirs = new String[]{ps.apkPath};
             ai.splitPublicSourceDirs = ai.splitSourceDirs;
+            if (Build.VERSION.SDK_INT >= 28) {
+                ai.splitSourceDirs = null;
+                ai.splitPublicSourceDirs = null;
+            }
             ApplicationInfoL.scanSourceDir.set(ai, ai.dataDir);
             ApplicationInfoL.scanPublicSourceDir.set(ai, ai.dataDir);
             String hostPrimaryCpuAbi = ApplicationInfoL.primaryCpuAbi.get(VirtualCore.get().getContext().getApplicationInfo());

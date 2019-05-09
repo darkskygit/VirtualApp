@@ -375,7 +375,19 @@ class MethodProxies {
                 // 解决微信界面跳转狂闪的问题
                 return null;
             } else {
-                return super.call(who, method, args);
+                try {
+                    MethodParameterUtils.replaceFirstAppPkg(args);
+                    for (int i = 0; i < args.length; i++) {
+                        if (args[i] instanceof Integer) {
+                            args[i] = 0;
+                        }
+                    }
+                    return method.invoke(who, args);
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                }
+
+                return 0;
             }
         }
     }

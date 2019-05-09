@@ -15,6 +15,11 @@ android {
             }
         }
     }
+    sourceSets {
+        main {
+            aidl.srcDirs = ['src/main/aidl']
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
@@ -45,7 +50,7 @@ android {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'com.google.inject:guice:4.1.0'
+    implementation 'com.google.inject:guice:4.2.2'
 }
 
 repositories {
