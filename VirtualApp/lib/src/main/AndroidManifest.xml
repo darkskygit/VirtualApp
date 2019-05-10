@@ -223,7 +223,7 @@
         android:name="android.hardware.camera.autofocus"
         android:required="false" />
 
-    <application>
+    <application android:usesCleartextTraffic="true">
         <service
             android:name="com.lody.virtual.client.stub.DaemonService"
             android:process="@string/engine_process_name" />

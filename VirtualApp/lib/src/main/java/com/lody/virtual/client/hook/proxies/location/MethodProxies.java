@@ -138,9 +138,9 @@ public class MethodProxies {
     static class getProviders extends MethodProxy {
 
         static List PROVIDERS = Arrays.asList(
-                LocationManager.GPS_PROVIDER,
-                LocationManager.PASSIVE_PROVIDER,
-                LocationManager.NETWORK_PROVIDER
+                LocationManager.GPS_PROVIDER
+//                LocationManager.PASSIVE_PROVIDER,
+//                LocationManager.NETWORK_PROVIDER
         );
 
         @Override
@@ -164,15 +164,15 @@ public class MethodProxies {
         public Object call(Object who, Method method, Object... args) throws Throwable {
             if (isFakeLocationEnable()) {
                 String provider = (String) args[0];
-                if (LocationManager.PASSIVE_PROVIDER.equals(provider)) {
-                    return true;
-                }
+//                if (LocationManager.PASSIVE_PROVIDER.equals(provider)) {
+//                    return true;
+//                }
                 if (LocationManager.GPS_PROVIDER.equals(provider)) {
                     return true;
                 }
-                if (LocationManager.NETWORK_PROVIDER.equals(provider)) {
-                    return true;
-                }
+//                if (LocationManager.NETWORK_PROVIDER.equals(provider)) {
+//                    return true;
+//                }
                 return false;
 
             }

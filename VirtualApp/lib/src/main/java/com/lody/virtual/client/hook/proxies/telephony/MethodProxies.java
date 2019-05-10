@@ -11,8 +11,8 @@ import android.telephony.CellSignalStrengthGsm;
 import android.telephony.NeighboringCellInfo;
 import android.telephony.cdma.CdmaCellLocation;
 import android.telephony.gsm.GsmCellLocation;
+import android.util.Log;
 
-import com.lody.virtual.client.hook.base.MethodProxy;
 import com.lody.virtual.client.hook.base.ReplaceCallingPkgMethodProxy;
 import com.lody.virtual.client.hook.base.StaticMethodProxy;
 import com.lody.virtual.client.ipc.VirtualLocationManager;
@@ -56,8 +56,11 @@ class MethodProxies {
                 VCell cell = VirtualLocationManager.get().getCell(getAppUserId(), getAppPkg());
                 if (cell != null) {
                     return getCellLocationInternal(cell);
+                } else {
+                    return getCellLocationInternal(new VCell());
                 }
             }
+            Log.e("getCellLocation", "err: " + isFakeLocationEnable());
             return super.call(who, method, args);
         }
     }
@@ -88,14 +91,13 @@ class MethodProxies {
         public Object call(Object who, Method method, Object... args) throws Throwable {
             if (isFakeLocationEnable()) {
                 List<VCell> cells = VirtualLocationManager.get().getAllCell(getAppUserId(), getAppPkg());
+                List<CellInfo> result = new ArrayList<CellInfo>();
                 if (cells != null) {
-                    List<CellInfo> result = new ArrayList<CellInfo>();
                     for (VCell cell : cells) {
                         result.add(createCellInfo(cell));
                     }
-                    return result;
                 }
-
+                return result;
             }
             return super.call(who, method, args);
         }
@@ -112,8 +114,8 @@ class MethodProxies {
         public Object call(Object who, Method method, Object... args) throws Throwable {
             if (isFakeLocationEnable()) {
                 List<VCell> cells = VirtualLocationManager.get().getNeighboringCell(getAppUserId(), getAppPkg());
+                List<NeighboringCellInfo> infos = new ArrayList<>();
                 if (cells != null) {
-                    List<NeighboringCellInfo> infos = new ArrayList<>();
                     for (VCell cell : cells) {
                         NeighboringCellInfo info = new NeighboringCellInfo();
                         mirror.android.telephony.NeighboringCellInfo.mLac.set(info, cell.lac);
@@ -121,8 +123,8 @@ class MethodProxies {
                         mirror.android.telephony.NeighboringCellInfo.mRssi.set(info, 6);
                         infos.add(info);
                     }
-                    return infos;
                 }
+                return infos;
             }
             return super.call(who, method, args);
         }
@@ -158,7 +160,6 @@ class MethodProxies {
         }
         return null;
     }
-
 
     private static CellInfo createCellInfo(VCell cell) {
         if (cell.type == 2) { // CDMA

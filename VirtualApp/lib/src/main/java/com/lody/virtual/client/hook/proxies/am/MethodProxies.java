@@ -30,6 +30,7 @@ import android.os.IInterface;
 import android.os.RemoteException;
 import android.provider.MediaStore;
 import android.text.TextUtils;
+import android.util.Log;
 import android.util.TypedValue;
 
 import com.lody.virtual.client.NativeEngine;
@@ -1129,13 +1130,20 @@ class MethodProxies {
                 return PackageManager.PERMISSION_GRANTED;
             }
             if (permission.equals(Manifest.permission.READ_PHONE_STATE) ||
+                    permission.equals(Manifest.permission.ACCESS_NETWORK_STATE) ||
+                    permission.equals(Manifest.permission.LOCATION_HARDWARE) ||
                     permission.equals(Manifest.permission.ACCESS_COARSE_LOCATION) ||
+                    permission.equals(Manifest.permission.ACCESS_FINE_LOCATION) ||
+                    permission.equals(Manifest.permission.ACCESS_LOCATION_EXTRA_COMMANDS) ||
+                    permission.equals(Manifest.permission.CONTROL_LOCATION_UPDATES) ||
+                    permission.equals(Manifest.permission.INSTALL_LOCATION_PROVIDER) ||
                     permission.equals(Manifest.permission.RECORD_AUDIO) ||
                     permission.equals(Manifest.permission.CAMERA) ||
                     permission.equals(Manifest.permission.READ_EXTERNAL_STORAGE) ||
                     permission.equals(Manifest.permission.WRITE_EXTERNAL_STORAGE) ||
                     permission.equals(Manifest.permission.WRITE_SETTINGS))
                 return PackageManager.PERMISSION_GRANTED;
+            Log.e("Permission", "request: " + permission);
             return method.invoke(who, args);
         }
 
@@ -1163,13 +1171,20 @@ class MethodProxies {
                 return PackageManager.PERMISSION_GRANTED;
             }
             if (permission.equals(Manifest.permission.READ_PHONE_STATE) ||
+                    permission.equals(Manifest.permission.ACCESS_NETWORK_STATE) ||
+                    permission.equals(Manifest.permission.LOCATION_HARDWARE) ||
                     permission.equals(Manifest.permission.ACCESS_COARSE_LOCATION) ||
+                    permission.equals(Manifest.permission.ACCESS_FINE_LOCATION) ||
+                    permission.equals(Manifest.permission.ACCESS_LOCATION_EXTRA_COMMANDS) ||
+                    permission.equals(Manifest.permission.CONTROL_LOCATION_UPDATES) ||
+                    permission.equals(Manifest.permission.INSTALL_LOCATION_PROVIDER) ||
                     permission.equals(Manifest.permission.RECORD_AUDIO) ||
                     permission.equals(Manifest.permission.CAMERA) ||
                     permission.equals(Manifest.permission.READ_EXTERNAL_STORAGE) ||
                     permission.equals(Manifest.permission.WRITE_EXTERNAL_STORAGE) ||
                     permission.equals(Manifest.permission.WRITE_SETTINGS))
                 return PackageManager.PERMISSION_GRANTED;
+            Log.e("Permission", "request: " + permission);
             args[args.length - 1] = getRealUid();
             return method.invoke(who, args);
         }
